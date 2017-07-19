@@ -39,9 +39,17 @@
     <Reference Include="Rock">
       <HintPath>..\RockWeb\Bin\Rock.dll</HintPath>
     </Reference>
+    <Reference Include="Rock.Rest">
+      <HintPath>..\RockWeb\Bin\Rock.Rest.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\RockWeb\Bin\System.Web.Http.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +61,12 @@
     <Compile Include="Lava\LavaFilters.cs" />
     <Compile Include="Lava\RegisterLavaFilters.cs" />
     <Compile Include="Migrations\001_AddKnownRelationships.cs" />
+    <Compile Include="Rest\LineSearchController.Partial.cs" />
+    <Compile Include="SystemGuid\Group.cs" />
+    <Compile Include="Utils\LineQuery.cs" />
+    <Compile Include="Web\UI\PersonPicker.cs" />
+    <Compile Include="Workflow\Action\AddKnownRelationship.cs" />
+    <Compile Include="Workflow\Action\RemoveKnownRelationship.cs" />
     <Compile Include="Workflow\Action\SetConnectionRequestConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
