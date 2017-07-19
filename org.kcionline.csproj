@@ -46,6 +46,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\RockWeb\Bin\System.Web.Http.dll</HintPath>
@@ -62,8 +63,11 @@
     <Compile Include="Lava\RegisterLavaFilters.cs" />
     <Compile Include="Migrations\001_AddKnownRelationships.cs" />
     <Compile Include="Rest\LineSearchController.Partial.cs" />
+    <Compile Include="SystemGuid\ConnectionOpportunity.cs" />
     <Compile Include="SystemGuid\Group.cs" />
+    <Compile Include="SystemGuid\GroupTypeRole.cs" />
     <Compile Include="Utils\LineQuery.cs" />
+    <Compile Include="Web\UI\ControlHelper.cs" />
     <Compile Include="Web\UI\PersonPicker.cs" />
     <Compile Include="Workflow\Action\AddKnownRelationship.cs" />
     <Compile Include="Workflow\Action\RemoveKnownRelationship.cs" />
