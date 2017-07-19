@@ -54,7 +54,7 @@ namespace org.kcionline.bricksandmortarstudio.Workflow.Action
                 }
             }
 
-            request.PersonAlias = personAlias;
+            request.ConnectorPersonAlias = personAlias;
             rockContext.SaveChanges();
 
             return true;
