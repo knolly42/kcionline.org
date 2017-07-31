@@ -1214,7 +1214,7 @@ namespace RockWeb.Plugins.KingsChurch
             {
                 currentPersonsCellGroupMember =
                     groupMemberService.GetByPersonId( CurrentPerson.Id )
-                                      .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id );
+                                      .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && gm.GroupRole.IsLeader );
             }
 
             var currentPersonsCellGroup = currentPersonsCellGroupMember != null ? currentPersonsCellGroupMember.Group : null;

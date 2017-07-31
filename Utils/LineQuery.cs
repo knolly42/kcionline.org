@@ -66,15 +66,17 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 Group currentPersonsCellGroup = null;
 
                 currentPersonsCellGroup = groupMemberService.GetByPersonId( currentPerson.Id )
-                                      .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id )?.Group;
-
+                                      .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && gm.GroupRole.IsLeader )?.Group;
+               
                 if ( currentPersonsCellGroup == null )
                 {
                     return null;
                 }
 
+                var rootGroupId = currentPersonsCellGroup.ParentGroupId.HasValue ? currentPersonsCellGroup.ParentGroupId.Value : currentPersonsCellGroup.Id;
+
                 var descendentGroups =
-                    new GroupService( rockContext ).GetAllDescendents( currentPersonsCellGroup.Id )
+                    new GroupService( rockContext ).GetAllDescendents( rootGroupId )
                                                  .Where( g => g.GroupTypeId == groupType.Id )
                                                  .Select( g => g.Id );
                 var peopleInLine =
