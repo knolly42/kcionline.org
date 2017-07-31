@@ -65,9 +65,12 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 var groupType = GroupTypeCache.Read( SystemGuid.Group.CELL_GROUP.AsGuid() );
                 Group currentPersonsCellGroup = null;
 
-                currentPersonsCellGroup = groupMemberService.GetByPersonId( currentPerson.Id )
-                                      .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && gm.GroupRole.IsLeader )?.Group;
-               
+                if ( groupType != null )
+                {
+                    currentPersonsCellGroup = groupMemberService.GetByPersonId( currentPerson.Id )
+                                          .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && gm.GroupRole.IsLeader )?.Group;
+                }
+
                 if ( currentPersonsCellGroup == null )
                 {
                     return null;
