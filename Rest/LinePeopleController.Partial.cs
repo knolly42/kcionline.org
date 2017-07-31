@@ -13,9 +13,9 @@ using Rock.Web.Cache;
 
 namespace org.kcionline.bricksandmortarstudio.Rest
 {
-    public class LineSearchController : Rock.Rest.ApiController<Person>
+    public class LinePeopleController : Rock.Rest.ApiController<Person>
     {
-        public LineSearchController() : base( new PersonService( new RockContext() ) ) { }
+        public LinePeopleController() : base( new PersonService( new RockContext() ) ) { }
 
         /// <summary>
         /// Returns results to the Person Picker

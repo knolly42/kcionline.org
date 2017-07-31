@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace org.kcionline.bricksandmortarstudio.SystemGuid
 {
-    class Group
+    public static class Group
     {
         public const string CELL_GROUP = "a9a8db72-1fbb-4a95-87f7-2a31d060d757";
     }
