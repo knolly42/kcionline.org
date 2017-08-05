@@ -75,19 +75,21 @@ namespace org_kcionline.Groups
             int totalCount = 0;
             foreach ( var group in cellGroupsInLine )
             {
-                var isLeader = group.Members.Any(p => p.GroupRole.IsLeader && p.Person == CurrentPerson);
+                bool isLeader = group.Members.Any( p => p.GroupRole.IsLeader && p.Person == CurrentPerson );
+                bool isMember = group.Members.Any(p => p.Person == CurrentPerson);
                 totalCount += group.Members.Count;
                 groups.Add( new GroupInvolvementSummary
                 {
                     Group = group,
                     IsLeader = isLeader,
-                    MemberCount = group.Members.Count
+                    MemberCount = group.Members.Count,
+                    IsMember = isMember
                 } );
             }
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
             mergeFields.Add( "Groups", groups );
-            mergeFields.Add( "TotalCount", totalCount);
+            mergeFields.Add( "TotalCount", totalCount );
             var linkedPages = new Dictionary<string, object>();
             linkedPages.Add( "DetailPage", LinkedPageRoute( "DetailPage" ) );
             mergeFields.Add( "LinkedPages", linkedPages );
@@ -111,6 +113,7 @@ namespace org_kcionline.Groups
             public Group Group { get; set; }
             public bool IsLeader { get; set; }
             public int MemberCount { get; set; }
+            public bool IsMember { get; set; }
         }
 
         #endregion
