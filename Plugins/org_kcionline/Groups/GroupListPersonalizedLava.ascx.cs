@@ -12,12 +12,12 @@ using Rock.Security;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
-namespace Plugins.org_kcionline.Groups
+namespace org_kcionline.Groups
 {
     [DisplayName( "Cell Group Line List" )]
     [Category( "Bricks and Mortar Studio" )]
     [Description( "Lists all group that the person is a member of or is responsible for using a Lava template." )]
-    [LinkedPage( "Detail Page", "", false)]
+    [LinkedPage( "Detail Page", "", false )]
     [CodeEditorField( "Lava Template", "The lava template to use to format the group list.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, "{% include '~~/Assets/Lava/GroupListSidebar.lava' %}", "", 1 )]
     [BooleanField( "Enable Debug", "Shows the fields available to merge in lava.", false, "", 2 )]
     public partial class GroupListPersonalizedLava : RockBlock
@@ -67,28 +67,27 @@ namespace Plugins.org_kcionline.Groups
         {
             var rockContext = new RockContext();
 
-            var cellGroupMembers = LineQuery.GetGroupMemberInLine(CurrentPerson, rockContext, false).ToList();
-            
+            var cellGroupsInLine = LineQuery.GetCellGroupsInLine( CurrentPerson, rockContext, false ).ToList();
+
 
             var groups = new List<GroupInvolvementSummary>();
 
-            foreach ( var groupMember in cellGroupMembers )
+            int totalCount = 0;
+            foreach ( var group in cellGroupsInLine )
             {
-                if ( groupMember.Group.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
+                var isLeader = group.Members.Any(p => p.GroupRole.IsLeader && p.Person == CurrentPerson);
+                totalCount += group.Members.Count;
+                groups.Add( new GroupInvolvementSummary
                 {
-                    groups.Add( new GroupInvolvementSummary
-                    {
-                        Group = groupMember.Group,
-                        Role = groupMember.GroupRole.Name,
-                        IsLeader = groupMember.GroupRole.IsLeader,
-                        GroupType = groupMember.Group.GroupType.Name
-                    } );
-                }
+                    Group = group,
+                    IsLeader = isLeader,
+                    MemberCount = group.Members.Count
+                } );
             }
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
             mergeFields.Add( "Groups", groups );
-
+            mergeFields.Add( "TotalCount", totalCount);
             var linkedPages = new Dictionary<string, object>();
             linkedPages.Add( "DetailPage", LinkedPageRoute( "DetailPage" ) );
             mergeFields.Add( "LinkedPages", linkedPages );
@@ -106,13 +105,12 @@ namespace Plugins.org_kcionline.Groups
             lContent.Text = template.ResolveMergeFields( mergeFields );
         }
 
-        [DotLiquid.LiquidType( "Group", "Role", "IsLeader", "GroupType" )]
+        [DotLiquid.LiquidType( "Group", "IsLeader", "MemberCount" )]
         public class GroupInvolvementSummary
         {
             public Group Group { get; set; }
-            public string Role { get; set; }
             public bool IsLeader { get; set; }
-            public string GroupType { get; set; }
+            public int MemberCount { get; set; }
         }
 
         #endregion
