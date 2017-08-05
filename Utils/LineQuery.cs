@@ -68,7 +68,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 if ( groupType != null )
                 {
                     currentPersonsCellGroup = groupMemberService.GetByPersonId( currentPerson.Id )
-                                          .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && gm.GroupRole.IsLeader )?.Group;
+                                          .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && (gm.GroupRole.IsLeader || gm.GroupRole.Guid == SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid() ))?.Group;
                 }
 
                 if ( currentPersonsCellGroup == null )
