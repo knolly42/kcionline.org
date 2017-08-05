@@ -93,10 +93,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             var groupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
             IQueryable<GroupMember> currentPersonsCellGroups = null;
 
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
             if ( groupType != null )
             {
                 currentPersonsCellGroups = groupMemberService.GetByPersonId( currentPerson.Id )
-                                      .Where( gm => gm.Group.GroupTypeId == groupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid() ) );
+                                      .Where( gm => gm.Group.GroupTypeId == groupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) );
             }
 
             if ( currentPersonsCellGroups == null || !currentPersonsCellGroups.Any() )
