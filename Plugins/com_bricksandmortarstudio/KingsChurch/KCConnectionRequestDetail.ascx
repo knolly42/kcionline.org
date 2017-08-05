@@ -30,22 +30,28 @@
                 <div class="panel-body">
 
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-2">
+                            <div class="photo">
+                                <asp:Literal ID="lPortrait" runat="server" />
+                            </div>
+                        </div>
+                        <div class="col-md-8">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <div class="photo">
-                                        <asp:Literal ID="lPortrait" runat="server" />
-                                    </div>
-                                </div>
-                                <div class="col-md-8">
                                     <Rock:RockLiteral ID="lContactInfo" runat="server" Label="Contact Info" />
                                     <Rock:RockLiteral ID="lConnector" runat="server" Label="Connector" />
                                 </div>
+                                <div class="col-md-4">
+                                    <Rock:RockLiteral ID="lRequestDate" runat="server" Label="Request Date" />
+                                    <Rock:RockLiteral ID="lPlacementGroup" runat="server" Label="Placement Group" />
+                                </div>
+                                <div class="col-md-4">
+                                    <asp:Panel runat="server" CssClass="margin-b-sm" ID="pnlBadges">
+                                        <Rock:PersonProfileBadgeList ID="blStatus" runat="server" />
+                                    </asp:Panel>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <Rock:RockLiteral ID="lRequestDate" runat="server" Label="Request Date" />
-                            <Rock:RockLiteral ID="lPlacementGroup" runat="server" Label="Placement Group" />
+
                         </div>
                     </div>
 

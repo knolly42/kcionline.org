@@ -45,7 +45,8 @@ namespace RockWeb.Plugins.KingsChurch
     [LinkedPage( "Group Detail Page", "Page used to display group details.", order: 3, required:false )]
     [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred", order: 4 )]
     [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 5 )]
-    public partial class KCConnectionRequestDetail : RockBlock, IDetailBlock
+    [PersonBadgesField( "Badges", "The person badges to display in this block.", false, "", "", 6 )]
+    public partial class KCConnectionRequestDetail : PersonBlock, IDetailBlock
     {
 
         #region Fields
@@ -113,6 +114,28 @@ namespace RockWeb.Plugins.KingsChurch
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.AddConfigurationUpdateTrigger( upDetail );
+
+            string badgeList = GetAttributeValue( "Badges" );
+            if ( !string.IsNullOrWhiteSpace( badgeList ) )
+            {
+                pnlBadges.Visible = true;
+                foreach ( string badgeGuid in badgeList.SplitDelimitedValues() )
+                {
+                    Guid guid = badgeGuid.AsGuid();
+                    if ( guid != Guid.Empty )
+                    {
+                        var personBadge = PersonBadgeCache.Read( guid );
+                        if ( personBadge != null )
+                        {
+                            blStatus.PersonBadges.Add( personBadge );
+                        }
+                    }
+                }
+            }
+            else
+            {
+                pnlBadges.Visible = false;
+            }
         }
 
         /// <summary>
@@ -125,6 +148,28 @@ namespace RockWeb.Plugins.KingsChurch
 
             nbErrorMessage.Visible = false;
             nbRequirementsErrors.Visible = false;
+
+            string badgeList = GetAttributeValue( "Badges" );
+            if ( !string.IsNullOrWhiteSpace( badgeList ) )
+            {
+                pnlBadges.Visible = true;
+                foreach ( string badgeGuid in badgeList.SplitDelimitedValues() )
+                {
+                    Guid guid = badgeGuid.AsGuid();
+                    if ( guid != Guid.Empty )
+                    {
+                        var personBadge = PersonBadgeCache.Read( guid );
+                        if ( personBadge != null )
+                        {
+                            blStatus.PersonBadges.Add( personBadge );
+                        }
+                    }
+                }
+            }
+            else
+            {
+                pnlBadges.Visible = false;
+            }
 
             if ( !Page.IsPostBack )
             {
