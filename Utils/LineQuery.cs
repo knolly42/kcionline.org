@@ -1,4 +1,4 @@
-﻿using System.Data.Entity;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Rock;
 using Rock.Data;
@@ -9,18 +9,42 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 {
     public static class LineQuery
     {
-        public static IQueryable<Person> GetPeopleInLine( Person currentPerson )
+        public static IQueryable<GroupMember> GetGroupMemberInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
-            var rockContext = new RockContext();
-            return GetPeopleInLine( new PersonService( rockContext ), currentPerson, rockContext );
+            if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
+            {
+                return new GroupMemberService(rockContext).Queryable("Group, Group.GroupType").Where(a => a.Group.GroupType.Guid == SystemGuid.GroupType.CELL_GROUP.AsGuid());
+            }
+            else
+            {
+                var cellGroupsIdsInLine = GetCellGroupIdsInLine( currentPerson, rockContext );
+
+                var groupMemberInLine =
+                    new GroupMemberService( rockContext ).Queryable()
+                                      .Where( gm => cellGroupsIdsInLine.Contains( gm.GroupId ) );
+                return groupMemberInLine;
+            }
         }
 
-        public static IQueryable<Person> GetPeopleInLine( PersonService personService, Person currentPerson )
+        public static IQueryable<Person> GetPeopleInLine( PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
-            return GetPeopleInLine( personService, currentPerson, new RockContext() );
+            if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
+            {
+                return personService.Queryable();
+            }
+            else
+            {
+                var cellGroupsIdsInLine = GetCellGroupIdsInLine( currentPerson, rockContext );
+
+                var peopleInLine =
+                    new GroupMemberService( rockContext ).Queryable()
+                                      .Where( gm => cellGroupsIdsInLine.Contains( gm.GroupId ) )
+                                      .Select( gm => gm.Person );
+                return peopleInLine;
+            }
         }
 
-        public static IQueryable<Person> GetPeopleInLine( PersonService personService, Person currentPerson, RockContext rockContext )
+        private static bool CheckIsStaff( Person currentPerson, RockContext rockContext )
         {
             bool isStaff = false;
             var staffTeamGuid = Rock.SystemGuid.Group.GROUP_STAFF_MEMBERS.AsGuidOrNull();
@@ -50,40 +74,47 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                     }
                 }
             }
+            return isStaff;
+        }
 
-            if ( isStaff )
+        public static IQueryable<Group> GetCellGroupsInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
+        {
+            if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
             {
-                return personService.Queryable();
+                return new GroupService( rockContext ).Queryable();
             }
-            else
+
+            return new GroupService( rockContext ).GetByIds( GetCellGroupIdsInLine( currentPerson, rockContext ) );
+        }
+
+        private static List<int> GetCellGroupIdsInLine( Person currentPerson, RockContext rockContext )
+        {
+            var groupMemberService = new GroupMemberService( rockContext );
+            var groupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+            IQueryable<GroupMember> currentPersonsCellGroups = null;
+
+            if ( groupType != null )
             {
-                var groupMemberService = new GroupMemberService( rockContext );
-                var groupType = GroupTypeCache.Read( SystemGuid.Group.CELL_GROUP.AsGuid() );
-                Group currentPersonsCellGroup = null;
-
-                if ( groupType != null )
-                {
-                    currentPersonsCellGroup = groupMemberService.GetByPersonId( currentPerson.Id )
-                                          .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && (gm.GroupRole.IsLeader || gm.GroupRole.Guid == SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid() ))?.Group;
-                }
-
-                if ( currentPersonsCellGroup == null )
-                {
-                    return null;
-                }
-
-                var rootGroupId = currentPersonsCellGroup.ParentGroupId ?? currentPersonsCellGroup.Id;
-
-                var descendentGroups =
-                    new GroupService( rockContext ).GetAllDescendents( rootGroupId )
-                                                 .Where( g => g.GroupTypeId == groupType.Id )
-                                                 .Select( g => g.Id );
-                var peopleInLine =
-                    groupMemberService.Queryable()
-                                      .Where( gm => descendentGroups.Contains( gm.GroupId ) )
-                                      .Select( gm => gm.Person );
-                return peopleInLine;
+                currentPersonsCellGroups = groupMemberService.GetByPersonId( currentPerson.Id )
+                                      .Where( gm => gm.Group.GroupTypeId == groupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid() ) );
             }
+
+            if ( currentPersonsCellGroups == null || !currentPersonsCellGroups.Any() )
+            {
+                return null;
+            }
+
+            var descendentGroups = new List<int>();
+
+            var groupService = new GroupService( rockContext );
+            foreach ( var group in currentPersonsCellGroups )
+            {
+                int rootGroupId = group.Group.ParentGroupId ?? group.Group.Id;
+                descendentGroups.AddRange( groupService.GetAllDescendents( rootGroupId )
+                                                      .Where( g => g.GroupTypeId == groupType.Id )
+                                                      .Select( g => g.Id ) );
+            }
+            return descendentGroups;
         }
 
         public static IQueryable<ConnectionRequest> GetPeopleInLineFollowUpRequests( Person currentPerson )
@@ -94,8 +125,8 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             int getConnectedOpportunityId =
                 new ConnectionOpportunityService( rockContext ).Get(
                     SystemGuid.ConnectionOpportunity.GET_CONNECTED.AsGuid() ).Id;
-            var connectionRequests = connectionRequestService.Queryable()
-                                    .AsNoTracking()
+            var connectionRequests = connectionRequestService
+                                    .Queryable()
                                     .Where( c => c.ConnectionOpportunityId == getConnectedOpportunityId && c.ConnectorPersonAliasId == currentPerson.PrimaryAliasId && c.ConnectionState == ConnectionState.Active );
 
             return connectionRequests;
