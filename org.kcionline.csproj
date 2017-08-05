@@ -64,7 +64,7 @@
     <Compile Include="Migrations\001_AddKnownRelationships.cs" />
     <Compile Include="Rest\LinePeopleController.Partial.cs" />
     <Compile Include="SystemGuid\ConnectionOpportunity.cs" />
-    <Compile Include="SystemGuid\Group.cs" />
+    <Compile Include="SystemGuid\GroupType.cs" />
     <Compile Include="SystemGuid\GroupTypeRole.cs" />
     <Compile Include="Utils\LineQuery.cs" />
     <Compile Include="Web\UI\ControlHelper.cs" />

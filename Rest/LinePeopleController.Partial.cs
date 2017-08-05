@@ -240,7 +240,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
         {
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
-            var allowedPersons = Utils.LineQuery.GetPeopleInLine( personService, GetPerson(), rockContext );
+            var allowedPersons = Utils.LineQuery.GetPeopleInLine( personService, GetPerson(), rockContext, true );
 
             var firstNames = new List<string>();
             var lastNames = new List<string>();
