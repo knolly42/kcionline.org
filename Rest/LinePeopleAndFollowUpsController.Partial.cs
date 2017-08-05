@@ -12,9 +12,9 @@ using Rock.Web.Cache;
 
 namespace org.kcionline.bricksandmortarstudio.Rest
 {
-    public class LinePeopleController : Rock.Rest.ApiController<Person>
+    public class LinePeopleAndFollowUpsController : Rock.Rest.ApiController<Person>
     {
-        public LinePeopleController() : base( new PersonService( new RockContext() ) ) { }
+        public LinePeopleAndFollowUpsController() : base( new PersonService( new RockContext() ) ) { }
 
         /// <summary>
         /// Returns results to the Person Picker
@@ -27,7 +27,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
         /// <returns></returns>
         [Authenticate, Secured]
         [HttpGet]
-        [System.Web.Http.Route( "api/com_bricksandmortarstudio/LineSearch" )]
+        [System.Web.Http.Route( "api/com_bricksandmortarstudio/LineAndFollowUpsSearch" )]
         public IQueryable<PersonSearchResult> Search( string name, bool includeHtml, bool includeDetails, bool includeBusinesses = false, bool includeDeceased = false )
         {
             int count = 20;
@@ -194,7 +194,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
             {
                 if ( personAge != null )
                 {
-                    personInfoHtml += personAge.ToString() + " yrs old";
+                    personInfoHtml += personAge + " yrs old";
                 }
             }
 
@@ -239,7 +239,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
         {
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
-            var allowedPersons = Utils.LineQuery.GetPeopleInLine( personService, GetPerson(), rockContext, true );
+            var allowedPersons = Utils.LineQuery.GetPeopleInLineAndTheirFollowUps( personService, GetPerson(), rockContext, true );
 
             var firstNames = new List<string>();
             var lastNames = new List<string>();
