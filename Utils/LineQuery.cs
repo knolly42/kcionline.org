@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -76,7 +72,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                     return null;
                 }
 
-                var rootGroupId = currentPersonsCellGroup.ParentGroupId.HasValue ? currentPersonsCellGroup.ParentGroupId.Value : currentPersonsCellGroup.Id;
+                var rootGroupId = currentPersonsCellGroup.ParentGroupId ?? currentPersonsCellGroup.Id;
 
                 var descendentGroups =
                     new GroupService( rockContext ).GetAllDescendents( rootGroupId )
