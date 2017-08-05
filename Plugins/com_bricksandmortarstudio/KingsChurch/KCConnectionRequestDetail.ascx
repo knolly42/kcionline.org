@@ -145,20 +145,6 @@
 
         </div>
 
-        <Rock:PanelWidget ID="wpConnectionRequestWorkflow" runat="server" Title="Workflows" CssClass="clickable">
-            <div class="grid">
-                <Rock:Grid ID="gConnectionRequestWorkflows" runat="server" AllowPaging="false" DisplayType="Light" RowItemText="Location" OnRowSelected="gConnectionRequestWorkflows_RowSelected">
-                    <Columns>
-                        <Rock:RockBoundField DataField="WorkflowType" HeaderText="Workflow Type" />
-                        <Rock:RockBoundField DataField="Trigger" HeaderText="Trigger" />
-                        <Rock:RockBoundField DataField="CurrentActivity" HeaderText="Current Activity" />
-                        <Rock:RockBoundField DataField="Date" HeaderText="Start Date" />
-                        <Rock:RockBoundField DataField="Status" HeaderText="Status" HtmlEncode="false" />
-                    </Columns>
-                </Rock:Grid>
-            </div>
-        </Rock:PanelWidget>
-
         <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="Activities" Expanded="true" CssClass="clickable">
             <div class="grid">
                 <Rock:Grid ID="gConnectionRequestActivities" runat="server" AllowPaging="false" DisplayType="Light"

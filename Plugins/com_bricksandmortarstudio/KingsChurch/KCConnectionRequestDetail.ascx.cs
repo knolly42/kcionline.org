@@ -95,10 +95,7 @@ namespace RockWeb.Plugins.KingsChurch
             gConnectionRequestActivities.Actions.ShowAdd = true;
             gConnectionRequestActivities.Actions.AddClick += gConnectionRequestActivities_Add;
             gConnectionRequestActivities.GridRebind += gConnectionRequestActivities_GridRebind;
-            gConnectionRequestActivities.RowDataBound += gConnectionRequestActivities_RowDataBound;
-
-            gConnectionRequestWorkflows.DataKeyNames = new string[] { "Guid" };
-            gConnectionRequestWorkflows.GridRebind += gConnectionRequestWorkflows_GridRebind;
+            gConnectionRequestActivities.RowDataBound += gConnectionRequestActivities_RowDataBound;           
 
             rptRequestWorkflows.ItemCommand += rptRequestWorkflows_ItemCommand;
 
@@ -220,7 +217,6 @@ namespace RockWeb.Plugins.KingsChurch
                 ShowReadonlyDetails( new ConnectionRequestService( new RockContext() ).Get( connectionRequestId ) );
                 pnlReadDetails.Visible = true;
                 wpConnectionRequestActivities.Visible = true;
-                wpConnectionRequestWorkflow.Visible = true;
                 pnlEditDetails.Visible = false;
                 pnlTransferDetails.Visible = false;
             }
@@ -366,7 +362,6 @@ namespace RockWeb.Plugins.KingsChurch
                 {
                     pnlReadDetails.Visible = false;
                     wpConnectionRequestActivities.Visible = false;
-                    wpConnectionRequestWorkflow.Visible = false;
                     pnlTransferDetails.Visible = true;
                     if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
                     {
@@ -475,7 +470,6 @@ namespace RockWeb.Plugins.KingsChurch
                             
                             pnlReadDetails.Visible = true;
                             wpConnectionRequestActivities.Visible = true;
-                            wpConnectionRequestWorkflow.Visible = true;
                             pnlTransferDetails.Visible = false;
 
                             ShowDetail( connectionRequest.Id, connectionRequest.ConnectionOpportunityId );
@@ -579,90 +573,7 @@ namespace RockWeb.Plugins.KingsChurch
             }
         }
 
-        #endregion
-
-        #region ConnectionRequestWorkflow Events
-
-        /// <summary>
-        /// Handles the GridRebind event of the gConnectionRequestWorkflows control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void gConnectionRequestWorkflows_GridRebind( object sender, EventArgs e )
-        {
-            BindConnectionRequestWorkflowsGrid();
-        }
-
-        /// <summary>
-        /// Binds the connection request workflows grid.
-        /// </summary>
-        private void BindConnectionRequestWorkflowsGrid()
-        {
-            using ( var rockContext = new RockContext() )
-            {
-                var connectionRequestService = new ConnectionRequestService( rockContext );
-                var connectionRequest = connectionRequestService.Get( hfConnectionRequestId.ValueAsInt() );
-                if ( connectionRequest != null )
-                {
-                    var instantiatedWorkflows = connectionRequest.ConnectionRequestWorkflows
-                        .Where( c =>
-                            c.Workflow != null &&
-                            c.Workflow.WorkflowType != null )
-                        .ToList();
-
-                    gConnectionRequestWorkflows.DataSource = instantiatedWorkflows
-                        .Select( c => new
-                        {
-                            c.Id,
-                            c.Guid,
-                            WorkflowType = c.Workflow.WorkflowType.Name,
-                            Trigger = c.TriggerType.ConvertToString(),
-                            CurrentActivity = c.Workflow.ActiveActivityNames,
-                            Date = c.Workflow.ActivatedDateTime.Value.ToShortDateString(),
-                            OrderByDate = c.Workflow.ActivatedDateTime.Value,
-                            Status = c.Workflow.Status == "Completed" ? "<span class='label label-success'>Complete</span>" : "<span class='label label-info'>Running</span>"
-                        } )
-                        .OrderByDescending( c => c.OrderByDate )
-                        .ToList();
-                    gConnectionRequestWorkflows.DataBind();
-
-                    if ( !instantiatedWorkflows.Any() )
-                    {
-                        wpConnectionRequestWorkflow.Visible = false;
-                    }
-                    else
-                    {
-                        wpConnectionRequestWorkflow.Title = String.Format( "Workflows <span class='badge badge-info'>{0}</span>", instantiatedWorkflows.Count.ToString() );
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Handles the RowSelected event of the gConnectionRequestWorkflows control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
-        protected void gConnectionRequestWorkflows_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
-        {
-            var requestWorkflow = new ConnectionRequestWorkflowService( new RockContext() ).Get( e.RowKeyValue.ToString().AsGuid() );
-            if ( requestWorkflow != null && requestWorkflow.Workflow != null )
-            {
-                if ( requestWorkflow.Workflow.HasActiveEntryForm( CurrentPerson ) )
-                {
-                    var qryParam = new Dictionary<string, string>();
-                    qryParam.Add( "WorkflowTypeId", requestWorkflow.Workflow.WorkflowTypeId.ToString() );
-                    qryParam.Add( "WorkflowId", requestWorkflow.Workflow.Id.ToString() );
-                    NavigateToLinkedPage( "WorkflowEntryPage", qryParam );
-                }
-                else
-                {
-                    NavigateToLinkedPage( "WorkflowDetailPage", "workflowId", requestWorkflow.Workflow.Id );
-                }
-            }
-        }
-
-        #endregion
+        #endregion       
 
         #region ConnectionRequestActivity Events
 
@@ -1176,7 +1087,6 @@ namespace RockWeb.Plugins.KingsChurch
                 }
 
                 BindConnectionRequestActivitiesGrid( connectionRequest, new RockContext() );
-                BindConnectionRequestWorkflowsGrid();
             }
             else
             {
@@ -1198,7 +1108,6 @@ namespace RockWeb.Plugins.KingsChurch
             btnSave.Visible = true;
             pnlReadDetails.Visible = false;
             wpConnectionRequestActivities.Visible = false;
-            wpConnectionRequestWorkflow.Visible = false;
             pnlEditDetails.Visible = true;
             lRequestor.Text = connectionRequest.PersonAlias.Person.FullName;
             if ( connectionRequest.ConnectorPersonAliasId != null )
