@@ -40,11 +40,11 @@ namespace RockWeb.Plugins.KingsChurch
     [Description( "Displays the details of the given connection request for editing state, status, etc." )]
 
     [LinkedPage( "Person Profile Page", "Page used for viewing a person's profile. If set a view profile button will show for each group member.", false, order: 0 )]
-    [LinkedPage( "Workflow Detail Page", "Page used to display details about a workflow.", order: 1 )]
+    [LinkedPage( "Workflow Detail Page", "Page used to display details about a workflow.", order: 1, required:false )]
     [LinkedPage( "Workflow Entry Page", "Page used to launch a new workflow of the selected type.", order: 2 )]
-    [LinkedPage( "Group Detail Page", "Page used to display group details.", order: 3 )]
-    [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred", order:4 )]
-    [TextField("Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order:5 )]
+    [LinkedPage( "Group Detail Page", "Page used to display group details.", order: 3, required:false )]
+    [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred", order: 4 )]
+    [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 5 )]
     public partial class KCConnectionRequestDetail : RockBlock, IDetailBlock
     {
 
