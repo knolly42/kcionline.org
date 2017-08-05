@@ -36,6 +36,14 @@
     <Reference Include="EntityFramework">
       <HintPath>..\RockWeb\Bin\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\RockWeb\Bin\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Quartz, Version=2.0.0.100, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\RockWeb\Bin\Quartz.dll</HintPath>
+    </Reference>
     <Reference Include="Rock">
       <HintPath>..\RockWeb\Bin\Rock.dll</HintPath>
     </Reference>
@@ -62,19 +70,23 @@
     <Compile Include="Lava\LavaFilters.cs" />
     <Compile Include="Lava\RegisterLavaFilters.cs" />
     <Compile Include="Migrations\001_AddKnownRelationships.cs" />
+    <Compile Include="Rest\LinePeopleAndFollowUpsController.Partial.cs" />
     <Compile Include="Rest\LinePeopleController.Partial.cs" />
     <Compile Include="SystemGuid\ConnectionOpportunity.cs" />
     <Compile Include="SystemGuid\GroupType.cs" />
     <Compile Include="SystemGuid\GroupTypeRole.cs" />
     <Compile Include="Utils\LineQuery.cs" />
     <Compile Include="Web\UI\ControlHelper.cs" />
+    <Compile Include="Web\UI\LineAndFollowUpsPersonPicker.cs" />
     <Compile Include="Web\UI\LinePersonPicker.cs" />
     <Compile Include="Workflow\Action\AddKnownRelationship.cs" />
     <Compile Include="Workflow\Action\RemoveKnownRelationship.cs" />
     <Compile Include="Workflow\Action\SetConnectionRequestConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Jobs\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
