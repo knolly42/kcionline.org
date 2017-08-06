@@ -41,7 +41,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                     new GroupMemberService( rockContext ).Queryable()
                                       .Where( gm => cellGroupsIdsInLine.Contains( gm.GroupId ) && gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid )
                                       .Select( gm => gm.Person );
-                return peopleInLine;
+                return peopleInLine.Distinct();
             }
         }
 
@@ -56,22 +56,20 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 var cellGroupsIdsInLine = GetCellGroupIdsInLine( currentPerson, rockContext );
                 var recordStatusIsActiveGuid = Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid();
                 var groupMemberService = new GroupMemberService( rockContext );
-                var peopleInLine =
+
+                // Get person Ids from line
+                var personIds =
                     groupMemberService.Queryable()
                                       .Where( gm => cellGroupsIdsInLine.Contains( gm.GroupId ) && gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid )
-                                      .Select( gm => gm.Person ).ToList();
-
-                var people = new List<Person>();
+                                      .Select( gm => gm.PersonId ).ToList();
 
                 // Get people's follow ups
                 int consolidatedByGroupTypeRoleId = new GroupTypeRoleService( rockContext ).Get( SystemGuid.GroupTypeRole.CONSOLIDATED_BY.AsGuid() ).Id;
-                foreach ( var person in peopleInLine )
+                foreach ( int personId in personIds )
                 {
-                    people.AddRange( groupMemberService.GetKnownRelationship( person.Id, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( p => p.Person ) );
+                    personIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
                 }
-
-                people.AddRange( peopleInLine );
-                return people.AsQueryable();
+                return personService.GetByIds(personIds).Distinct();
             }
         }
 
