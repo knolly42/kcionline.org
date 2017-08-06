@@ -58,18 +58,19 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 var groupMemberService = new GroupMemberService( rockContext );
 
                 // Get person Ids from line
-                var personIds =
+                var linePersonIds =
                     groupMemberService.Queryable()
                                       .Where( gm => cellGroupsIdsInLine.Contains( gm.GroupId ) && gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid )
                                       .Select( gm => gm.PersonId ).ToList();
 
                 // Get people's follow ups
                 int consolidatedByGroupTypeRoleId = new GroupTypeRoleService( rockContext ).Get( SystemGuid.GroupTypeRole.CONSOLIDATED_BY.AsGuid() ).Id;
-                foreach ( int personId in personIds )
+                var followUpIds = new List<int>();
+                foreach ( int personId in linePersonIds )
                 {
-                    personIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
+                    followUpIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
                 }
-                return personService.GetByIds(personIds).Distinct();
+                return personService.GetByIds(linePersonIds.Union(followUpIds).ToList()).Distinct();
             }
         }
 
