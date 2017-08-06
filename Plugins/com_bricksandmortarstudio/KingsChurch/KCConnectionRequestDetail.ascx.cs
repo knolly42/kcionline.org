@@ -1175,7 +1175,7 @@ namespace RockWeb.Plugins.KingsChurch
 
             if ( currentPersonsCellGroup != null )
             {
-                gpGroup.RootGroupId = currentPersonsCellGroup.ParentGroupId.HasValue ? currentPersonsCellGroup.ParentGroupId.Value : currentPersonsCellGroup.Id;
+                gpGroup.RootGroupId = currentPersonsCellGroup.Id;
             }
             else
             {
