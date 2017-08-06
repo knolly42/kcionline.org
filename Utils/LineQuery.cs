@@ -117,7 +117,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             return new GroupService( rockContext ).GetByIds( GetCellGroupIdsInLine( currentPerson, rockContext ).ToList() );
         }
 
-        private static IEnumerable<int> GetCellGroupIdsInLine( Person currentPerson, RockContext rockContext )
+        public static IEnumerable<int> GetCellGroupIdsInLine( Person currentPerson, RockContext rockContext )
         {
 
             var groupMemberService = new GroupMemberService( rockContext );
