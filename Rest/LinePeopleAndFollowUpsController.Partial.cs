@@ -30,7 +30,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
         [System.Web.Http.Route( "api/com_bricksandmortarstudio/LineAndFollowUpsSearch" )]
         public IQueryable<PersonSearchResult> Search( string name, bool includeHtml, bool includeDetails, bool includeBusinesses = false, bool includeDeceased = false )
         {
-            int count = 20;
+            const int count = 20;
             bool showFullNameReversed;
             bool allowFirstNameOnly = false;
 
@@ -44,8 +44,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
             int activeRecordStatusValueId = activeRecordStatusValue != null ? activeRecordStatusValue.Id : 0;
 
 
-            var sortedPersonQry = GetByFullName( name, true, includeBusinesses, allowFirstNameOnly, out showFullNameReversed ).Take( count );
-
+            var sortedPersonQry = GetByFullNameOrdered( name, true, includeBusinesses, allowFirstNameOnly, out showFullNameReversed ).Take( count );
             if ( includeDetails == false )
             {
                 var simpleResultQry = sortedPersonQry.Select( a => new { a.Id, a.FirstName, a.NickName, a.LastName, a.SuffixValueId, a.RecordTypeValueId, a.RecordStatusValueId } );
@@ -60,8 +59,11 @@ namespace org.kcionline.bricksandmortarstudio.Rest
 
                 return simpleResult.AsQueryable();
             }
-            List<PersonSearchResult> searchResult = SearchWithDetails( sortedPersonQry, showFullNameReversed );
-            return searchResult.AsQueryable();
+            else
+            {
+                List<PersonSearchResult> searchResult = SearchWithDetails( sortedPersonQry, showFullNameReversed );
+                return searchResult.AsQueryable();
+            }
         }
 
         private List<PersonSearchResult> SearchWithDetails( IQueryable<Person> sortedPersonQry, bool showFullNameReversed )
@@ -235,12 +237,24 @@ namespace org.kcionline.bricksandmortarstudio.Rest
             personSearchResult.PickerItemDetailsHtml = string.Format( itemDetailFormat, imageHtml, personInfoHtml );
         }
 
+        public IOrderedQueryable<Person> GetByFullNameOrdered( string fullName, bool includeDeceased, bool includeBusinesses, bool allowFirstNameOnly, out bool reversed )
+        {
+            var qry = GetByFullName( fullName, includeDeceased, includeBusinesses, allowFirstNameOnly, out reversed );
+            if ( reversed )
+            {
+                return qry.OrderBy( p => p.LastName ).ThenBy( p => p.NickName );
+            }
+            else
+            {
+                return qry.OrderBy( p => p.NickName ).ThenBy( p => p.LastName );
+            }
+        }
+
         private IQueryable<Person> GetByFullName( string fullName, bool includeDeceased, bool includeBusinesses, bool allowFirstNameOnly, out bool reversed )
         {
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
             var allowedPersons = Utils.LineQuery.GetPeopleInLineAndTheirFollowUps( personService, GetPerson(), rockContext, true );
-
             var firstNames = new List<string>();
             var lastNames = new List<string>();
             string singleName = string.Empty;
