@@ -134,7 +134,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
             if ( currentPersonsCellGroups == null || !currentPersonsCellGroups.Any() )
             {
-                return null;
+                return new List<int>();
             }
 
             var descendentGroups = new List<int>();
