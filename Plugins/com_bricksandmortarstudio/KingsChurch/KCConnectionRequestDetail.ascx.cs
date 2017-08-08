@@ -893,77 +893,89 @@ namespace RockWeb.Plugins.KingsChurch
 
                 if ( connectionOpportunity != null && connectionRequest != null )
                 {
-                    hfConnectionOpportunityId.Value = connectionRequest.ConnectionOpportunityId.ToString();
-                    hfConnectionRequestId.Value = connectionRequest.Id.ToString();
-                    lConnectionOpportunityIconHtml.Text = string.Format( "<i class='{0}' ></i>", connectionOpportunity.IconCssClass );
-
-                    pnlReadDetails.Visible = true;
-
-                    if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
+                    if ( connectionRequest.Id != 0 && PageParameter( "PersonId" ).AsIntegerOrNull() == null )
                     {
-                        lTitle.Text = connectionRequest.PersonAlias.Person.FullName.FormatAsHtmlTitle();
+                        var qryParams = new Dictionary<string, string>();
+                        qryParams["ConnectionOpportunityId"] = PageParameter( "ConnectionOpportunityId" );
+                        qryParams["ConnectionRequestId"] = PageParameter( "ConnectionRequestId" );
+                        qryParams["PersonId"] = connectionRequest.PersonAlias.PersonId.ToString();
+
+                        NavigateToPage( RockPage.Guid, qryParams );
                     }
                     else
                     {
-                        lTitle.Text = String.Format( "New {0} Connection Request", connectionOpportunity.Name );
-                    }
+                        hfConnectionOpportunityId.Value = connectionRequest.ConnectionOpportunityId.ToString();
+                        hfConnectionRequestId.Value = connectionRequest.Id.ToString();
+                        lConnectionOpportunityIconHtml.Text = string.Format( "<i class='{0}' ></i>", connectionOpportunity.IconCssClass );
 
-                    // Only users that have Edit rights to block, or edit rights to the opportunity
-                    if ( !editAllowed )
-                    {
-                        editAllowed = connectionRequest.IsAuthorized( Authorization.EDIT, CurrentPerson );
-                    }
+                        pnlReadDetails.Visible = true;
 
-                    // Grants edit access to those in the opportunity's connector groups
-                    if ( !editAllowed && CurrentPersonId.HasValue )
-                    {
-                        // Grant edit access to any of those in a non campus-specific connector group
-                        editAllowed = connectionOpportunity.ConnectionOpportunityConnectorGroups
-                            .Any( g =>
-                                !g.CampusId.HasValue &&
-                                g.ConnectorGroup != null &&
-                                g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId ) );
+                        if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
+                        {
+                            lTitle.Text = connectionRequest.PersonAlias.Person.FullName.FormatAsHtmlTitle();
+                        }
+                        else
+                        {
+                            lTitle.Text = String.Format( "New {0} Connection Request", connectionOpportunity.Name );
+                        }
+
+                        // Only users that have Edit rights to block, or edit rights to the opportunity
+                        if ( !editAllowed )
+                        {
+                            editAllowed = connectionRequest.IsAuthorized( Authorization.EDIT, CurrentPerson );
+                        }
+
+                        // Grants edit access to those in the opportunity's connector groups
+                        if ( !editAllowed && CurrentPersonId.HasValue )
+                        {
+                            // Grant edit access to any of those in a non campus-specific connector group
+                            editAllowed = connectionOpportunity.ConnectionOpportunityConnectorGroups
+                                .Any( g =>
+                                    !g.CampusId.HasValue &&
+                                    g.ConnectorGroup != null &&
+                                    g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId ) );
+
+                            if ( !editAllowed )
+                            {
+                                //If this is a new request, grant edit access to any connector group. Otherwise, match the request's campus to the corresponding campus-specific connector group
+                                foreach ( var groupCampus in connectionOpportunity
+                                    .ConnectionOpportunityConnectorGroups
+                                    .Where( g =>
+                                        ( connectionRequest.Id == 0 || ( connectionRequest.CampusId.HasValue && g.CampusId == connectionRequest.CampusId.Value ) ) &&
+                                        g.ConnectorGroup != null &&
+                                        g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId ) ) )
+                                {
+                                    editAllowed = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        lbConnect.Visible = editAllowed;
+                        lbEdit.Visible = editAllowed;
+                        lbTransfer.Visible = editAllowed;
+                        gConnectionRequestActivities.IsDeleteEnabled = editAllowed;
+                        gConnectionRequestActivities.Actions.ShowAdd = editAllowed;
 
                         if ( !editAllowed )
                         {
-                            //If this is a new request, grant edit access to any connector group. Otherwise, match the request's campus to the corresponding campus-specific connector group
-                            foreach ( var groupCampus in connectionOpportunity
-                                .ConnectionOpportunityConnectorGroups
-                                .Where( g =>
-                                    ( connectionRequest.Id == 0 || ( connectionRequest.CampusId.HasValue && g.CampusId == connectionRequest.CampusId.Value ) ) &&
-                                    g.ConnectorGroup != null &&
-                                    g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId ) ) )
-                            {
-                                editAllowed = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    lbConnect.Visible = editAllowed;
-                    lbEdit.Visible = editAllowed;
-                    lbTransfer.Visible = editAllowed;
-                    gConnectionRequestActivities.IsDeleteEnabled = editAllowed;
-                    gConnectionRequestActivities.Actions.ShowAdd = editAllowed;
-
-                    if ( !editAllowed )
-                    {
-                        // User is not authorized
-                        nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( ConnectionRequest.FriendlyTypeName );
-                        ShowReadonlyDetails( connectionRequest );
-                    }
-                    else
-                    {
-                        nbEditModeMessage.Text = string.Empty;
-                        if ( connectionRequest.Id > 0 )
-                        {
+                            // User is not authorized
+                            nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( ConnectionRequest.FriendlyTypeName );
                             ShowReadonlyDetails( connectionRequest );
                         }
                         else
                         {
-                            ShowEditDetails( connectionRequest, rockContext );
+                            nbEditModeMessage.Text = string.Empty;
+                            if ( connectionRequest.Id > 0 )
+                            {
+                                ShowReadonlyDetails( connectionRequest );
+                            }
+                            else
+                            {
+                                ShowEditDetails( connectionRequest, rockContext );
+                            }
                         }
-                    }
+                    }                  
                 }
             }
         }
