@@ -67,6 +67,10 @@
                                 </div>
                                 <Rock:DatePicker ID="dpStartDate" runat="server" Label="Start Date" />
                                 <Rock:DataTextBox ID="tbDescription" runat="server" SourceTypeName="Rock.Model.Group, Rock" PropertyName="Description" TextMode="MultiLine" Rows="4" />
+
+                                <Rock:PanelWidget ID="wpGroupAttributes" runat="server" Title="Group Attribute Values">
+                                    <asp:PlaceHolder ID="phGroupAttributes" runat="server" EnableViewState="false"></asp:PlaceHolder>
+                                </Rock:PanelWidget>
                             </div>
                         </div>
 

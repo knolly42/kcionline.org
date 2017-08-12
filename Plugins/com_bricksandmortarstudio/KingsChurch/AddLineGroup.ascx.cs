@@ -28,7 +28,7 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
     [DisplayName( "Add Line Group" )]
     [Category( "com_bricksandmortarstudio > KingsChurch" )]
     [Description( "Displays the details of the given group." )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The style of maps to use", false, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK, "",  5 )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The style of maps to use", false, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK, "", 0 )]
 
     public partial class AddLineGroup : RockBlock, IDetailBlock
     {
@@ -442,6 +442,9 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
                         }
                     }
 
+                    group.LoadAttributes();
+                    Rock.Attribute.Helper.GetEditValues( phGroupAttributes, group );
+
                     group.GroupType = new GroupTypeService( rockContext ).Get( group.GroupTypeId );
                     if ( group.ParentGroupId.HasValue )
                     {
@@ -660,6 +663,19 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
 
                 gLocations.Columns[2].Visible = groupType != null && ( groupType.EnableLocationSchedules ?? false );
                 spSchedules.Visible = groupType != null && ( groupType.EnableLocationSchedules ?? false );
+
+                phGroupAttributes.Controls.Clear();
+                group.LoadAttributes();
+
+                if ( group.Attributes != null && group.Attributes.Any() )
+                {
+                    wpGroupAttributes.Visible = true;
+                    Rock.Attribute.Helper.AddEditControls( group, phGroupAttributes, setValues, BlockValidationGroup );
+                }
+                else
+                {
+                    wpGroupAttributes.Visible = false;
+                }
             }
         }
 
