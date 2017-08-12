@@ -89,6 +89,7 @@ namespace org_kcionline.Groups
             var groups = new List<GroupInvolvementSummary>();
 
             int totalCount = 0;
+            int responsibilityCount = cellGroupsInLine.Count;
             foreach ( var group in allCellGroups )
             {
                 bool isLeader = group.Members.Any( p => p.GroupRole.IsLeader && p.Person == CurrentPerson );
@@ -106,6 +107,7 @@ namespace org_kcionline.Groups
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
             mergeFields.Add( "Groups", groups );
             mergeFields.Add( "TotalCount", totalCount );
+            mergeFields.Add("ResponsibilityCount", responsibilityCount );
             var linkedPages = new Dictionary<string, object>();
             linkedPages.Add( "DetailPage", LinkedPageRoute( "DetailPage" ) );
             mergeFields.Add( "LinkedPages", linkedPages );
