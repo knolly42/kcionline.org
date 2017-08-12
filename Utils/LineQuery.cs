@@ -194,5 +194,10 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
             return connectionRequests;
         }
+
+        public static bool IsGroupInPersonsLine(Group group, Person currentPerson)
+        {
+            return GetCellGroupsInLine(currentPerson, new RockContext(), false).ToList().Any( g => g.Id == group.Id);
+        }
     }
 }
