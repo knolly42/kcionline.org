@@ -20,8 +20,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Data.Entity;
-
 using Rock;
 using Rock.Constants;
 using Rock.Data;
@@ -1117,6 +1115,7 @@ namespace RockWeb.Plugins.KingsChurch
                     lbConnect.Visible = editAllowed;
                     lbEdit.Visible = editAllowed;
                     lbReassign.Visible = editAllowed;
+                    lbTransfer.Visible = editAllowed;
                     gConnectionRequestActivities.IsDeleteEnabled = editAllowed;
                     gConnectionRequestActivities.Actions.ShowAdd = editAllowed;
 
@@ -1165,6 +1164,7 @@ namespace RockWeb.Plugins.KingsChurch
             {
                 lbConnect.Visible = false;
                 lbReassign.Visible = false;
+                lbTransfer.Visible = false;
             }
 
             if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
