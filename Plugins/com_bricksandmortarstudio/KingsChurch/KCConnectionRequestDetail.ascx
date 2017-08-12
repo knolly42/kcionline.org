@@ -180,7 +180,6 @@
                     <Columns>
                         <Rock:RockBoundField DataField="Date" HeaderText="Date" />
                         <Rock:RockBoundField DataField="Activity" HeaderText="Activity" />
-                        <Rock:RockBoundField DataField="Opportunity" HeaderText="Opportunity" />
                         <Rock:RockBoundField DataField="Connector" HeaderText="Connector" />
                         <Rock:RockBoundField DataField="Note" HeaderText="Note" />
                         <Rock:DeleteField OnClick="gConnectionRequestActivities_Delete" />
