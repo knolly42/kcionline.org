@@ -29,6 +29,7 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
     [Category( "com_bricksandmortarstudio > KingsChurch" )]
     [Description( "Displays the details of the given group." )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The style of maps to use", false, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK, "", 0 )]
+    [BooleanField( "Show Time Field", "Whether or not to show the time field", false, order: 1 )]
 
     public partial class AddLineGroup : RockBlock, IDetailBlock
     {
@@ -763,7 +764,7 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
                     case ScheduleType.Weekly:
                         {
                             dowWeekly.Visible = true;
-                            timeWeekly.Visible = true;
+                            timeWeekly.Visible = GetAttributeValue("ShowTimeField").AsBoolean();
                             break;
                         }
 
