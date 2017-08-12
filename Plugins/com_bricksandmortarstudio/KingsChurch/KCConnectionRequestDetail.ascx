@@ -65,27 +65,12 @@
                                 </asp:Repeater>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <asp:Panel ID="pnlRequirements" runat="server">
-                                <Rock:RockControlWrapper ID="rcwRequirements" runat="server" Label="Group Requirements">
-                                    <Rock:NotificationBox ID="nbRequirementsErrors" runat="server" Dismissable="true" NotificationBoxType="Warning" />
-                                    <Rock:RockCheckBoxList ID="cblManualRequirements" RepeatDirection="Vertical" runat="server" Label="" />
-                                    <div class="labels">
-                                        <asp:Literal ID="lRequirementsLabels" runat="server" />
-                                    </div>
-                                </Rock:RockControlWrapper>
-                            </asp:Panel>
-                        </div>
                     </div>
 
                     <div class="actions">
                         <asp:LinkButton ID="lbEdit" runat="server" Text="Edit" CssClass="btn btn-primary" OnClick="lbEdit_Click"></asp:LinkButton>
                         <asp:LinkButton ID="lbReassign" runat="server" Text="Reassign" CssClass="btn btn-link" CausesValidation="false" OnClick="lbReassign_Click"></asp:LinkButton>
                         <asp:LinkButton ID="lbTransfer" runat="server" Text="Transfer" CssClass="btn btn-link" CausesValidation="false" OnClick="lbTransfer_Click"></asp:LinkButton>
-
-                        <div class="pull-right">
-                            <asp:LinkButton ID="lbConnect" runat="server" Text="Connect" CssClass="btn btn-success" CausesValidation="false" OnClick="lbConnect_Click"></asp:LinkButton>
-                        </div>
                     </div>
 
                 </div>
@@ -111,12 +96,26 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <Rock:GroupPicker ID="gpGroup" runat="server" Label="Group" />
+                            <Rock:GroupPicker ID="gpGroup" runat="server" Label="Group" OnSelectItem="gpGroup_SelectItem" />
+                        </div>
+                    </div>
+
+                    <div class="row">                        
+                        <div class="col-md-6">
+                            <asp:Panel ID="pnlRequirements" runat="server">
+                                <Rock:RockControlWrapper ID="rcwRequirements" runat="server" Label="Group Requirements">
+                                    <Rock:NotificationBox ID="nbRequirementsErrors" runat="server" Dismissable="true" NotificationBoxType="Warning" />
+                                    <Rock:RockCheckBoxList ID="cblManualRequirements" RepeatDirection="Vertical" runat="server" Label="" />
+                                    <div class="labels">
+                                        <asp:Literal ID="lRequirementsLabels" runat="server" />
+                                    </div>
+                                </Rock:RockControlWrapper>
+                            </asp:Panel>
                         </div>
                     </div>
 
                     <div class="actions">
-                        <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Connect" CssClass="btn btn-success" OnClick="btnSave_Click"></asp:LinkButton>
                         <asp:LinkButton ID="btnCancel" runat="server" AccessKey="c" Text="Cancel" CssClass="btn btn-link" OnClick="btnCancel_Click" CausesValidation="false"></asp:LinkButton>
                     </div>
 

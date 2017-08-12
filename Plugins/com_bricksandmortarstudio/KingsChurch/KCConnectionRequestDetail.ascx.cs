@@ -112,7 +112,7 @@ namespace RockWeb.Plugins.KingsChurch
         });
     });
 ";
-            ScriptManager.RegisterStartupScript( lbConnect, lbConnect.GetType(), "confirmConnectScript", confirmConnectScript, true );
+            ScriptManager.RegisterStartupScript( btnSave, btnSave.GetType(), "confirmConnectScript", confirmConnectScript, true );
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.AddConfigurationUpdateTrigger( upDetail );
@@ -239,113 +239,60 @@ namespace RockWeb.Plugins.KingsChurch
         protected void btnSave_Click( object sender, EventArgs e )
         {
             if ( Page.IsValid )
-            {
+            {                
                 using ( var rockContext = new RockContext() )
                 {
-                    ConnectionRequestService connectionRequestService = new ConnectionRequestService( rockContext );
-                    ConnectionRequest connectionRequest = null;
+                    var connectionRequestService = new ConnectionRequestService( rockContext );
+                    var groupMemberService = new GroupMemberService( rockContext );
+                    var connectionActivityTypeService = new ConnectionActivityTypeService( rockContext );
+                    var connectionRequestActivityService = new ConnectionRequestActivityService( rockContext );
+                    var connectionRequest = connectionRequestService.Get( hfConnectionRequestId.ValueAsInt() );
 
-                    int connectionRequestId = hfConnectionRequestId.ValueAsInt();
-
-                    // load existing connection request
-                    connectionRequest = connectionRequestService.Get( connectionRequestId );
-
-                    if ( connectionRequest != null )
+                    if ( connectionRequest != null &&
+                        connectionRequest.PersonAlias != null &&
+                        connectionRequest.ConnectionOpportunity != null )
                     {
-                        var personAliasService = new PersonAliasService( rockContext );
                         connectionRequest.AssignedGroupId = gpGroup.SelectedValueAsId();
 
-                        if ( !Page.IsValid )
+                        // Only do group member placement if the request has an assigned placement group
+                        if ( connectionRequest.ConnectionOpportunity.GroupMemberRoleId.HasValue &&
+                            connectionRequest.AssignedGroupId.HasValue )
                         {
-                            return;
+                            // Only attempt the add if person does not already exist in group with same role
+                            var groupMember = groupMemberService.GetByGroupIdAndPersonIdAndGroupRoleId( connectionRequest.AssignedGroupId.Value,
+                                connectionRequest.PersonAlias.PersonId, connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value );
+                            if ( groupMember == null )
+                            {
+                                groupMember = new GroupMember();
+                                groupMember.PersonId = connectionRequest.PersonAlias.PersonId;
+                                groupMember.GroupRoleId = connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value;
+                                groupMember.GroupMemberStatus = connectionRequest.ConnectionOpportunity.GroupMemberStatus;
+                                groupMember.GroupId = connectionRequest.AssignedGroupId.Value;
+                                groupMemberService.Add( groupMember );
+                            }
                         }
 
-                        // if the connectionRequest IsValue is false, and the UI controls didn't report any errors, it is probably
-                        // because the custom rules of ConnectionRequest didn't pass.
-                        // So, make sure a message is displayed in the validation summary.
-                        cvConnectionRequest.IsValid = connectionRequest.IsValid;
-
-                        if ( !cvConnectionRequest.IsValid )
+                        // ... but always record the connection activity and change the state to connected.
+                        var guid = Rock.SystemGuid.ConnectionActivityType.CONNECTED.AsGuid();
+                        var connectedActivityId = connectionActivityTypeService.Queryable()
+                            .Where( t => t.Guid == guid )
+                            .Select( t => t.Id )
+                            .FirstOrDefault();
+                        if ( connectedActivityId > 0 )
                         {
-                            cvConnectionRequest.ErrorMessage = connectionRequest.ValidationResults.Select( a => a.ErrorMessage ).ToList().AsDelimited( "<br />" );
-                            return;
+                            var connectionRequestActivity = new ConnectionRequestActivity();
+                            connectionRequestActivity.ConnectionRequestId = connectionRequest.Id;
+                            connectionRequestActivity.ConnectionOpportunityId = connectionRequest.ConnectionOpportunityId;
+                            connectionRequestActivity.ConnectionActivityTypeId = connectedActivityId;
+                            connectionRequestActivity.ConnectorPersonAliasId = CurrentPersonAliasId;
+                            connectionRequestActivityService.Add( connectionRequestActivity );
                         }
 
-                        if ( connectionRequest.Id.Equals( 0 ) )
-                        {
-                            connectionRequestService.Add( connectionRequest );
-                        }
+                        connectionRequest.ConnectionState = ConnectionState.Connected;
 
                         rockContext.SaveChanges();
-
-                        var qryParams = new Dictionary<string, string>();
-                        qryParams["ConnectionRequestId"] = connectionRequest.Id.ToString();
-                        qryParams["ConnectionOpportunityId"] = connectionRequest.ConnectionOpportunityId.ToString();
-
-                        NavigateToPage( RockPage.Guid, qryParams );
+                        ShowDetail( connectionRequest.Id, connectionRequest.ConnectionOpportunityId );
                     }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Handles the Click event of the lbConnect control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void lbConnect_Click( object sender, EventArgs e )
-        {
-            using ( var rockContext = new RockContext() )
-            {
-                var connectionRequestService = new ConnectionRequestService( rockContext );
-                var groupMemberService = new GroupMemberService( rockContext );
-                var connectionActivityTypeService = new ConnectionActivityTypeService( rockContext );
-                var connectionRequestActivityService = new ConnectionRequestActivityService( rockContext );
-                var connectionRequest = connectionRequestService.Get( hfConnectionRequestId.ValueAsInt() );
-
-                if ( connectionRequest != null &&
-                    connectionRequest.PersonAlias != null &&
-                    connectionRequest.ConnectionOpportunity != null )
-                {
-
-                    // Only do group member placement if the request has an assigned placement group
-                    if ( connectionRequest.ConnectionOpportunity.GroupMemberRoleId.HasValue &&
-                        connectionRequest.AssignedGroupId.HasValue )
-                    {
-                        // Only attempt the add if person does not already exist in group with same role
-                        var groupMember = groupMemberService.GetByGroupIdAndPersonIdAndGroupRoleId( connectionRequest.AssignedGroupId.Value,
-                            connectionRequest.PersonAlias.PersonId, connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value );
-                        if ( groupMember == null )
-                        {
-                            groupMember = new GroupMember();
-                            groupMember.PersonId = connectionRequest.PersonAlias.PersonId;
-                            groupMember.GroupRoleId = connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value;
-                            groupMember.GroupMemberStatus = connectionRequest.ConnectionOpportunity.GroupMemberStatus;
-                            groupMember.GroupId = connectionRequest.AssignedGroupId.Value;
-                            groupMemberService.Add( groupMember );
-                        }
-                    }
-
-                    // ... but always record the connection activity and change the state to connected.
-                    var guid = Rock.SystemGuid.ConnectionActivityType.CONNECTED.AsGuid();
-                    var connectedActivityId = connectionActivityTypeService.Queryable()
-                        .Where( t => t.Guid == guid )
-                        .Select( t => t.Id )
-                        .FirstOrDefault();
-                    if ( connectedActivityId > 0 )
-                    {
-                        var connectionRequestActivity = new ConnectionRequestActivity();
-                        connectionRequestActivity.ConnectionRequestId = connectionRequest.Id;
-                        connectionRequestActivity.ConnectionOpportunityId = connectionRequest.ConnectionOpportunityId;
-                        connectionRequestActivity.ConnectionActivityTypeId = connectedActivityId;
-                        connectionRequestActivity.ConnectorPersonAliasId = CurrentPersonAliasId;
-                        connectionRequestActivityService.Add( connectionRequestActivity );
-                    }
-
-                    connectionRequest.ConnectionState = ConnectionState.Connected;
-
-                    rockContext.SaveChanges();
-                    ShowDetail( connectionRequest.Id, connectionRequest.ConnectionOpportunityId );
                 }
             }
         }
@@ -1112,7 +1059,6 @@ namespace RockWeb.Plugins.KingsChurch
                         }
                     }
 
-                    lbConnect.Visible = editAllowed;
                     lbEdit.Visible = editAllowed;
                     lbReassign.Visible = editAllowed;
                     lbTransfer.Visible = editAllowed;
@@ -1157,12 +1103,10 @@ namespace RockWeb.Plugins.KingsChurch
             else
             {
                 pnlRequirements.Visible = false;
-                lbConnect.Enabled = !connectionRequest.ConnectionOpportunity.ConnectionType.RequiresPlacementGroupToConnect;
             }
 
             if ( connectionRequest.ConnectionState == ConnectionState.Inactive || connectionRequest.ConnectionState == ConnectionState.Connected )
             {
-                lbConnect.Visible = false;
                 lbReassign.Visible = false;
                 lbTransfer.Visible = false;
             }
@@ -1301,7 +1245,6 @@ namespace RockWeb.Plugins.KingsChurch
                 hlOpportunity.Visible = false;
                 hlCampus.Visible = false;
                 lblWorkflows.Visible = false;
-                lbConnect.Enabled = false;
             }
         }
 
@@ -1369,7 +1312,7 @@ namespace RockWeb.Plugins.KingsChurch
                 connectionRequest = new ConnectionRequestService( rockContext ).Get( connectionRequestId );
 
                 var groupMember = new GroupMember { Id = 0 };
-                groupMember.GroupId = connectionRequest.AssignedGroupId.Value;
+                groupMember.GroupId = gpGroup.SelectedValueAsId().Value;
                 groupMember.Group = new GroupService( rockContext ).Get( groupMember.GroupId );
                 groupMember.GroupRoleId = groupMember.Group.GroupType.DefaultGroupRoleId ?? 0;
                 groupMember.GroupMemberStatus = GroupMemberStatus.Active;
@@ -1475,18 +1418,18 @@ namespace RockWeb.Plugins.KingsChurch
                 {
                     if ( passedAllRequirements )
                     {
-                        lbConnect.RemoveCssClass( "js-confirm-connect" );
+                        btnSave.RemoveCssClass( "js-confirm-connect" );
                     }
                     else
                     {
-                        lbConnect.AddCssClass( "js-confirm-connect" );
+                        btnSave.AddCssClass( "js-confirm-connect" );
                     }
 
-                    lbConnect.Enabled = true;
+                    btnSave.Enabled = true;
                 }
                 else
                 {
-                    lbConnect.Enabled = false;
+                    btnSave.Enabled = false;
                 }
             }
         }
@@ -1765,5 +1708,10 @@ namespace RockWeb.Plugins.KingsChurch
 
         #endregion
 
+
+        protected void gpGroup_SelectItem( object sender, EventArgs e )
+        {
+            ShowConnectionOpportunityRequirementsStatuses();
+        }
     }
 }
