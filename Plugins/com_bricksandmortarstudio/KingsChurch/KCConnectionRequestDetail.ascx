@@ -24,11 +24,7 @@
             </div>
 
             <asp:Panel ID="pnlReadDetails" runat="server">
-
-                <Rock:PanelDrawer ID="pdAuditDetails" runat="server"></Rock:PanelDrawer>
-
                 <div class="panel-body">
-
                     <div class="row">
                         <div class="col-md-6">
                             <div class="row">
@@ -193,6 +189,8 @@
                 </Rock:Grid>
             </div>
         </Rock:PanelWidget>
+
+        <small><Rock:PanelDrawer ID="pdAuditDetails" runat="server" Expanded="true"></Rock:PanelDrawer></small>
 
         <Rock:ModalDialog ID="dlgConnectionRequestActivities" runat="server" SaveButtonText="Add" OnSaveClick="btnAddConnectionRequestActivity_Click" Title="Add Activity" ValidationGroup="Activity">
             <Content>
