@@ -56,7 +56,14 @@ namespace org_kcionline.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            ListGroups();
+            if ( CurrentPerson != null )
+            {
+                ListGroups();
+            }
+            else
+            {
+                // TODO
+            }
         }
 
         #endregion
@@ -68,15 +75,24 @@ namespace org_kcionline.Groups
             var rockContext = new RockContext();
 
             var cellGroupsInLine = LineQuery.GetCellGroupsInLine( CurrentPerson, rockContext, false ).ToList();
+            var cellGroupdTypeGuid = org.kcionline.bricksandmortarstudio.SystemGuid.GroupType.CELL_GROUP.AsGuid();
 
+            var cellMemberGroups =
+                new GroupMemberService( rockContext).Queryable()
+                                                   .Where(
+                                                       gm =>
+                                                           gm.PersonId == CurrentPersonId &&
+                                                           gm.Group.GroupType.Guid == cellGroupdTypeGuid ).Select( gm => gm.Group ).ToList();
+
+            var allCellGroups = cellGroupsInLine.Union( cellMemberGroups );
 
             var groups = new List<GroupInvolvementSummary>();
 
             int totalCount = 0;
-            foreach ( var group in cellGroupsInLine )
+            foreach ( var group in allCellGroups )
             {
                 bool isLeader = group.Members.Any( p => p.GroupRole.IsLeader && p.Person == CurrentPerson );
-                bool isMember = group.Members.Any(p => p.Person == CurrentPerson);
+                bool isMember = group.Members.Any( p => p.Person == CurrentPerson );
                 totalCount += group.Members.Count;
                 groups.Add( new GroupInvolvementSummary
                 {
@@ -113,6 +129,7 @@ namespace org_kcionline.Groups
             public Group Group { get; set; }
             public bool IsLeader { get; set; }
             public int MemberCount { get; set; }
+
             public bool IsMember { get; set; }
         }
 
