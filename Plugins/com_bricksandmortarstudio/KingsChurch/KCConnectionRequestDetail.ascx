@@ -30,28 +30,22 @@
                 <div class="panel-body">
 
                     <div class="row">
-                        <div class="col-md-2">
-                            <div class="photo">
-                                <asp:Literal ID="lPortrait" runat="server" />
-                            </div>
-                        </div>
-                        <div class="col-md-8">
+                        <div class="col-md-6">
                             <div class="row">
                                 <div class="col-md-4">
+                                    <div class="photo">
+                                        <asp:Literal ID="lPortrait" runat="server" />
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
                                     <Rock:RockLiteral ID="lContactInfo" runat="server" Label="Contact Info" />
                                     <Rock:RockLiteral ID="lConnector" runat="server" Label="Connector" />
                                 </div>
-                                <div class="col-md-4">
-                                    <Rock:RockLiteral ID="lRequestDate" runat="server" Label="Request Date" />
-                                    <Rock:RockLiteral ID="lPlacementGroup" runat="server" Label="Placement Group" />
-                                </div>
-                                <div class="col-md-4">
-                                    <asp:Panel runat="server" CssClass="margin-b-sm" ID="pnlBadges">
-                                        <Rock:PersonProfileBadgeList ID="blStatus" runat="server" />
-                                    </asp:Panel>
-                                </div>
                             </div>
-
+                        </div>
+                        <div class="col-md-4">
+                            <Rock:RockLiteral ID="lRequestDate" runat="server" Label="Request Date" />
+                            <Rock:RockLiteral ID="lPlacementGroup" runat="server" Label="Placement Group" />
                         </div>
                     </div>
 
@@ -90,7 +84,8 @@
 
                     <div class="actions">
                         <asp:LinkButton ID="lbEdit" runat="server" Text="Edit" CssClass="btn btn-primary" OnClick="lbEdit_Click"></asp:LinkButton>
-                        <asp:LinkButton ID="lbTransfer" runat="server" Text="Transfer" CssClass="btn btn-link" CausesValidation="false" OnClick="lbTransfer_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="lbReassign" runat="server" Text="Transfer" CssClass="btn btn-link" CausesValidation="false" OnClick="lbReassign_Click"></asp:LinkButton>
+                        
                         <div class="pull-right">
                             <asp:LinkButton ID="lbConnect" runat="server" Text="Connect" CssClass="btn btn-success" CausesValidation="false" OnClick="lbConnect_Click"></asp:LinkButton>
                         </div>
@@ -131,13 +126,30 @@
                 </div>
 
             </asp:Panel>
+            
+            <asp:Panel ID="pnlReassignDetails" runat="server" Visible="false">
+
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                           <KingsChurch:LinePersonPicker ID="ppReassign" runat="server" />
+                        </div>
+                    </div>
+                    </br>
+                    <div class="actions">
+                        <asp:LinkButton ID="btnReassignSave" runat="server" AccessKey="s" Text="Reassign" CssClass="btn btn-primary" OnClick="btnReassignSave_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="btnReassignCancel" runat="server" AccessKey="c" Text="Cancel" CssClass="btn btn-link" OnClick="btnCancel_Click" CausesValidation="false"></asp:LinkButton>
+                    </div>
+
+                </div>
+        </asp:Panel>
 
             <asp:Panel ID="pnlTransferDetails" runat="server" Visible="false">
 
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-6">
-                           <KingsChurch:LinePersonPicker ID="ppConnector" runat="server" />
+                           <KingsChurch:ConsolidatorLeaderPicker ID="ppTransfer" runat="server" />
                         </div>
                     </div>
                     </br>
@@ -150,6 +162,20 @@
         </asp:Panel>
 
         </div>
+
+        <Rock:PanelWidget ID="wpConnectionRequestWorkflow" runat="server" Title="Workflows" CssClass="clickable">
+            <div class="grid">
+                <Rock:Grid ID="gConnectionRequestWorkflows" runat="server" AllowPaging="false" DisplayType="Light" RowItemText="Location" OnRowSelected="gConnectionRequestWorkflows_RowSelected">
+                    <Columns>
+                        <Rock:RockBoundField DataField="WorkflowType" HeaderText="Workflow Type" />
+                        <Rock:RockBoundField DataField="Trigger" HeaderText="Trigger" />
+                        <Rock:RockBoundField DataField="CurrentActivity" HeaderText="Current Activity" />
+                        <Rock:RockBoundField DataField="Date" HeaderText="Start Date" />
+                        <Rock:RockBoundField DataField="Status" HeaderText="Status" HtmlEncode="false" />
+                    </Columns>
+                </Rock:Grid>
+            </div>
+        </Rock:PanelWidget>
 
         <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="Activities" Expanded="true" CssClass="clickable">
             <div class="grid">

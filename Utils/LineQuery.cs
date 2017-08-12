@@ -10,6 +10,14 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 {
     public static class LineQuery
     {
+        public static IQueryable<Person> GetLineCoordinatorsAndLeaders()
+        {
+
+            var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+            return new GroupMemberService( new RockContext() ).Queryable().Where(gm => gm.Group.GroupTypeId == cellGroupType.Id && (gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid)).Select(gm => gm.Person);
+        }
+
         public static IQueryable<GroupMember> GetGroupMemberInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
             if ( currentPerson == null )
