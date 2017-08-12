@@ -238,7 +238,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
         private IQueryable<Person> GetByFullName( string fullName, bool includeDeceased, bool includeBusinesses, bool allowFirstNameOnly, out bool reversed )
         {
             var rockContext = new RockContext();
-            var allowedPersons = Utils.LineQuery.GetLineCoordinatorsAndLeaders();
+            var allowedPersons = Utils.LineQuery.GetLineCoordinatorsAndLeaders(rockContext);
 
             var firstNames = new List<string>();
             var lastNames = new List<string>();

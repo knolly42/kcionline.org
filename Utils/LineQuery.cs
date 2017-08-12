@@ -10,12 +10,18 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 {
     public static class LineQuery
     {
+
         public static IQueryable<Person> GetLineCoordinatorsAndLeaders()
+        {
+            return GetLineCoordinatorsAndLeaders( new RockContext() );
+        }
+
+        public static IQueryable<Person> GetLineCoordinatorsAndLeaders( RockContext rockContext )
         {
 
             var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
             var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
-            return new GroupMemberService( new RockContext() ).Queryable().Where(gm => gm.Group.GroupTypeId == cellGroupType.Id && (gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid)).Select(gm => gm.Person);
+            return new GroupMemberService( rockContext ).Queryable().Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) ).Select( gm => gm.Person );
         }
 
         public static IQueryable<GroupMember> GetGroupMemberInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
@@ -65,7 +71,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IQueryable<Person> GetPeopleInLineAndTheirFollowUps( PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
-            if (currentPerson == null)
+            if ( currentPerson == null )
             {
                 return new List<Person>().AsQueryable();
             }
@@ -93,7 +99,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 {
                     followUpIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
                 }
-                return personService.GetByIds(linePersonIds.Union(followUpIds).ToList()).Distinct();
+                return personService.GetByIds( linePersonIds.Union( followUpIds ).ToList() ).Distinct();
             }
         }
 
@@ -147,7 +153,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IEnumerable<int> GetCellGroupIdsInLine( Person currentPerson, RockContext rockContext )
         {
-            if (currentPerson == null)
+            if ( currentPerson == null )
             {
                 return new List<int>();
             }
@@ -185,7 +191,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IQueryable<ConnectionRequest> GetPeopleInLineFollowUpRequests( Person currentPerson )
         {
-            if (currentPerson == null)
+            if ( currentPerson == null )
             {
                 return new List<ConnectionRequest>().AsQueryable();
             }
@@ -203,9 +209,9 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             return connectionRequests;
         }
 
-        public static bool IsGroupInPersonsLine(Group group, Person currentPerson)
+        public static bool IsGroupInPersonsLine( Group group, Person currentPerson )
         {
-            return GetCellGroupsInLine(currentPerson, new RockContext(), false).ToList().Any( g => g.Id == group.Id);
+            return GetCellGroupsInLine( currentPerson, new RockContext(), false ).ToList().Any( g => g.Id == group.Id );
         }
     }
 }
