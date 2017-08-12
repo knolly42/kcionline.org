@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AddGroup.ascx.cs" Inherits="RockWeb.Plugins.KingsChurch.AddGroup" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AddLineGroup.ascx.cs" Inherits="RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch.AddLineGroup" %>
 <%@ Register TagPrefix="KingsChurch" Assembly="org.kcionline.bricksandmortarstudio" Namespace="org.kcionline.bricksandmortarstudio.Web.UI" %>
 
 <script type="text/javascript">

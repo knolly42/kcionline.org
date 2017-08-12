@@ -23,14 +23,14 @@ using Attribute = Rock.Model.Attribute;
 
 using org.kcionline.bricksandmortarstudio.Utils;
 
-namespace RockWeb.Plugins.KingsChurch
+namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
 {
     [DisplayName( "Add Line Group" )]
     [Category( "com_bricksandmortarstudio > KingsChurch" )]
     [Description( "Displays the details of the given group." )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The style of maps to use", false, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK, "", 5 )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The style of maps to use", false, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK, "",  5 )]
 
-    public partial class AddGroup : RockBlock, IDetailBlock
+    public partial class AddLineGroup : RockBlock, IDetailBlock
     {
         #region Constants
 
@@ -361,7 +361,7 @@ namespace RockWeb.Plugins.KingsChurch
                     leader.Person = new PersonService( rockContext ).Get( lppLeader.PersonId.Value );
                     leader.GroupRole = parentGroup.GroupType.Roles.Where( r => r.IsLeader ).FirstOrDefault() ?? parentGroup.GroupType.DefaultGroupRole;
 
-                    group.Name = String.Format( "{0}, {1}", leader.Person.LastName, leader.Person.NickName);
+                    group.Name = String.Format( "{0}, {1}", leader.Person.LastName, leader.Person.NickName );
                     group.Description = tbDescription.Text;
                     group.CampusId = parentGroup.CampusId;
                     group.GroupTypeId = CurrentGroupTypeId;
