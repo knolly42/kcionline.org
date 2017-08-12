@@ -12,6 +12,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
     {
         public static IQueryable<GroupMember> GetGroupMemberInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
+            if ( currentPerson == null )
+            {
+                return new List<GroupMember>().AsQueryable();
+            }
+
             if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
             {
                 return new GroupMemberService( rockContext ).Queryable( "Group, Group.GroupType" ).Where( a => a.Group.GroupType.Guid == SystemGuid.GroupType.CELL_GROUP.AsGuid() );
@@ -29,6 +34,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IQueryable<Person> GetPeopleInLine( PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
+            if ( currentPerson == null )
+            {
+                return new List<Person>().AsQueryable();
+            }
+
             if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
             {
                 return personService.Queryable();
@@ -47,6 +57,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IQueryable<Person> GetPeopleInLineAndTheirFollowUps( PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
+            if (currentPerson == null)
+            {
+                return new List<Person>().AsQueryable();
+            }
+
             if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
             {
                 return personService.Queryable();
@@ -109,6 +124,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IQueryable<Group> GetCellGroupsInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
+            if ( currentPerson == null )
+            {
+                return new List<Group>().AsQueryable();
+            }
+
             if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
             {
                 return new GroupService( rockContext ).Queryable();
@@ -119,6 +139,10 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IEnumerable<int> GetCellGroupIdsInLine( Person currentPerson, RockContext rockContext )
         {
+            if (currentPerson == null)
+            {
+                return new List<int>();
+            }
 
             var groupMemberService = new GroupMemberService( rockContext );
             var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
@@ -153,6 +177,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
         public static IQueryable<ConnectionRequest> GetPeopleInLineFollowUpRequests( Person currentPerson )
         {
+            if (currentPerson == null)
+            {
+                return new List<ConnectionRequest>().AsQueryable();
+            }
+
             var rockContext = new RockContext();
 
             var connectionRequestService = new ConnectionRequestService( rockContext );
