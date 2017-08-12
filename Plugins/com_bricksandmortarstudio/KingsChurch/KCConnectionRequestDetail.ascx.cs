@@ -45,6 +45,7 @@ namespace RockWeb.Plugins.KingsChurch
     [TextField( "Reassign Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 5)]
     [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred", order: 6 )]
     [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7)]
+    [BooleanField("Show Workflow Buttons", "Whether to show workflow buttons or not", false, order:8 )]
     public partial class KCConnectionRequestDetail : RockBlock, IDetailBlock
     {
 
@@ -1213,6 +1214,8 @@ namespace RockWeb.Plugins.KingsChurch
                 hlOpportunity.Text = connectionRequest.ConnectionOpportunity != null ? connectionRequest.ConnectionOpportunity.Name : string.Empty;
                 hlCampus.Text = connectionRequest.Campus != null ? connectionRequest.Campus.Name : string.Empty;
 
+                pnlWorkflows.Visible = GetAttributeValue( "ShowWorkflowButtons" ).AsBoolean();
+                
                 if ( connectionRequest.ConnectionOpportunity != null )
                 {
                     var connectionWorkflows = connectionRequest.ConnectionOpportunity.ConnectionWorkflows.Union( connectionRequest.ConnectionOpportunity.ConnectionType.ConnectionWorkflows );
