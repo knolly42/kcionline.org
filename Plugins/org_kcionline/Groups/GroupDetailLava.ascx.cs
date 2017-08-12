@@ -5,13 +5,17 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.kcionline.bricksandmortarstudio.Utils;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
+using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using DefinedValue = Rock.SystemGuid.DefinedValue;
 
 namespace org_kcionline.Groups
 {
@@ -37,12 +41,12 @@ namespace org_kcionline.Groups
     [CodeEditorField( "Edit Group Post-HTML", "HTML to display after the edit group panel.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, false, "", "HTML Wrappers", 12 )]
     [CodeEditorField( "Edit Group Member Pre-HTML", "HTML to display before the edit group member panel.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, false, "", "HTML Wrappers", 13 )]
     [CodeEditorField( "Edit Group Member Post-HTML", "HTML to display after the edit group member panel.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, false, "", "HTML Wrappers", 14 )]
-    public partial class GroupDetailLava : Rock.Web.UI.RockBlock
+    public partial class GroupDetailLava : RockBlock
     {
         #region Fields
 
         // used for private variables
-        private int _groupId = 0;
+        private int _groupId;
         private const string MEMBER_LOCATION_TAB_TITLE = "Member Location";
         private const string OTHER_LOCATION_TAB_TITLE = "Other Location";
 
@@ -145,8 +149,8 @@ namespace org_kcionline.Groups
             base.OnInit( e );
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
-            this.BlockUpdated += Block_BlockUpdated;
-            this.AddConfigurationUpdateTrigger( upnlContent );
+            BlockUpdated += Block_BlockUpdated;
+            AddConfigurationUpdateTrigger( upnlContent );
 
             // get the group id
             if ( !string.IsNullOrWhiteSpace( PageParameter( "GroupId" ) ) )
@@ -163,21 +167,21 @@ namespace org_kcionline.Groups
         {
             base.LoadViewState( savedState );
 
-            if ( IsEditingGroup == true )
+            if ( IsEditingGroup )
             {
                 Group group = new GroupService( new RockContext() ).Get( _groupId );
                 group.LoadAttributes();
 
                 phAttributes.Controls.Clear();
-                Rock.Attribute.Helper.AddEditControls( group, phAttributes, false, BlockValidationGroup );
+                Helper.AddEditControls( group, phAttributes, false, BlockValidationGroup );
             }
 
-            if ( IsEditingGroupMember == true )
+            if ( IsEditingGroupMember )
             {
                 RockContext rockContext = new RockContext();
                 GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
-                var groupMember = groupMemberService.Get( this.CurrentGroupMemberId );
+                var groupMember = groupMemberService.Get( CurrentGroupMemberId );
 
                 if ( groupMember == null )
                 {
@@ -191,7 +195,7 @@ namespace org_kcionline.Groups
                 // set attributes
                 groupMember.LoadAttributes();
                 phGroupMemberAttributes.Controls.Clear();
-                Rock.Attribute.Helper.AddEditControls( groupMember, phGroupMemberAttributes, true, string.Empty, true );
+                Helper.AddEditControls( groupMember, phGroupMemberAttributes, true, string.Empty, true );
             }
         }
 
@@ -259,7 +263,7 @@ namespace org_kcionline.Groups
 
             Group group = groupService.Get( _groupId );
 
-            if ( group != null && group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+            if ( group != null && (group.IsAuthorized( Authorization.EDIT, CurrentPerson ) || LineQuery.IsGroupInPersonsLine( group, CurrentPerson ) ))
             {
                 group.Name = tbName.Text;
                 group.Description = tbDescription.Text;
@@ -279,7 +283,7 @@ namespace org_kcionline.Groups
 
                 // set attributes
                 group.LoadAttributes( rockContext );
-                Rock.Attribute.Helper.GetEditValues( phAttributes, group );
+                Helper.GetEditValues( phAttributes, group );
 
                 // configure locations
                 if ( GetAttributeValue( "EnableLocationEdit" ).AsBoolean() )
@@ -292,7 +296,7 @@ namespace org_kcionline.Groups
                     {
                         if ( ddlMember.SelectedValue != null )
                         {
-                            var ids = ddlMember.SelectedValue.Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
+                            var ids = ddlMember.SelectedValue.Split( new[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
                             if ( ids.Length == 2 )
                             {
                                 var dbLocation = new LocationService( rockContext ).Get( int.Parse( ids[0] ) );
@@ -309,7 +313,7 @@ namespace org_kcionline.Groups
                     {
                         if ( locpGroupLocation.Location != null )
                         {
-                            location = new LocationService( rockContext ).Get( (int) locpGroupLocation.Location.Id );
+                            location = new LocationService( rockContext ).Get( locpGroupLocation.Location.Id );
                         }
                     }
 
@@ -326,7 +330,7 @@ namespace org_kcionline.Groups
                         groupLocation.GroupMemberPersonAliasId = memberPersonAliasId;
                         groupLocation.Location = location;
                         groupLocation.LocationId = groupLocation.Location.Id;
-                        groupLocation.GroupLocationTypeValueId = ExtensionMethods.SelectedValueAsId(ddlLocationType);
+                        groupLocation.GroupLocationTypeValueId = ddlLocationType.SelectedValueAsId();
                     }
                 }
 
@@ -334,7 +338,7 @@ namespace org_kcionline.Groups
                 group.SaveAttributeValues( rockContext );
             }
 
-            this.IsEditingGroup = false;
+            IsEditingGroup = false;
 
             // reload the group info
             pnlGroupEdit.Visible = false;
@@ -351,7 +355,7 @@ namespace org_kcionline.Groups
         {
             pnlGroupEdit.Visible = false;
             pnlGroupView.Visible = true;
-            this.IsEditingGroup = false;
+            IsEditingGroup = false;
 
             var sm = ScriptManager.GetCurrent( Page );
             sm.AddHistoryPoint( "Action", "ViewGroup" );
@@ -367,23 +371,23 @@ namespace org_kcionline.Groups
             var rockContext = new RockContext();
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
-            GroupTypeRole role = new GroupTypeRoleService( rockContext ).Get( ExtensionMethods.SelectedValueAsInt(ddlGroupRole) ?? 0 );
+            GroupTypeRole role = new GroupTypeRoleService( rockContext ).Get( ddlGroupRole.SelectedValueAsInt() ?? 0 );
 
-            var groupMember = groupMemberService.Get( this.CurrentGroupMemberId );
+            var groupMember = groupMemberService.Get( CurrentGroupMemberId );
 
-            if ( this.CurrentGroupMemberId == 0 )
+            if ( CurrentGroupMemberId == 0 )
             {
                 groupMember = new GroupMember { Id = 0 };
                 groupMember.GroupId = _groupId;
 
                 // check to see if the person is alread a member of the gorup/role
                 var existingGroupMember = groupMemberService.GetByGroupIdAndPersonIdAndGroupRoleId(
-                    _groupId, ppGroupMemberPerson.SelectedValue ?? 0, ExtensionMethods.SelectedValueAsId(ddlGroupRole) ?? 0 );
+                    _groupId, ppGroupMemberPerson.SelectedValue ?? 0, ddlGroupRole.SelectedValueAsId() ?? 0 );
 
                 if ( existingGroupMember != null )
                 {
                     // if so, don't add and show error message
-                    var person = new PersonService( rockContext ).Get( (int)ppGroupMemberPerson.PersonId );
+                    var person = new PersonService( rockContext ).Get( ( int ) ppGroupMemberPerson.PersonId );
 
                     nbGroupMemberErrorMessage.Title = "Person Already In Group";
                     nbGroupMemberErrorMessage.Text = string.Format(
@@ -401,8 +405,8 @@ namespace org_kcionline.Groups
             groupMember.GroupRoleId = role.Id;
 
             // set their status.  If HideInactiveGroupMemberStatus is True, and they are already Inactive, keep their status as Inactive;
-            bool hideGroupMemberInactiveStatus = this.GetAttributeValue( "HideInactiveGroupMemberStatus" ).AsBooleanOrNull() ?? false;
-            var selectedStatus = ExtensionMethods.SelectedValueAsEnumOrNull<GroupMemberStatus>(rblStatus);
+            bool hideGroupMemberInactiveStatus = GetAttributeValue( "HideInactiveGroupMemberStatus" ).AsBooleanOrNull() ?? false;
+            var selectedStatus = rblStatus.SelectedValueAsEnumOrNull<GroupMemberStatus>();
             if ( !selectedStatus.HasValue )
             {
                 if ( hideGroupMemberInactiveStatus )
@@ -419,7 +423,7 @@ namespace org_kcionline.Groups
 
             groupMember.LoadAttributes();
 
-            Rock.Attribute.Helper.GetEditValues( phAttributes, groupMember );
+            Helper.GetEditValues( phAttributes, groupMember );
 
             if ( !Page.IsValid )
             {
@@ -451,13 +455,13 @@ namespace org_kcionline.Groups
             Group group = new GroupService( rockContext ).Get( groupMember.GroupId );
             if ( group.IsSecurityRole || group.GroupType.Guid.Equals( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() ) )
             {
-                Rock.Security.Role.Flush( group.Id );
+                Role.Flush( group.Id );
             }
 
             pnlEditGroupMember.Visible = false;
             pnlGroupView.Visible = true;
             DisplayViewGroup();
-            this.IsEditingGroupMember = false;
+            IsEditingGroupMember = false;
         }
 
         /// <summary>
@@ -469,7 +473,7 @@ namespace org_kcionline.Groups
         {
             pnlEditGroupMember.Visible = false;
             pnlGroupView.Visible = true;
-            this.IsEditingGroupMember = false;
+            IsEditingGroupMember = false;
 
             var sm = ScriptManager.GetCurrent( Page );
             sm.AddHistoryPoint( "Action", "ViewGroup" );
@@ -572,13 +576,13 @@ namespace org_kcionline.Groups
             lGroupMemberEditPreHtml.Text = GetAttributeValue( "EditGroupMemberPre-HTML" );
             lGroupMemberEditPostHtml.Text = GetAttributeValue( "EditGroupMemberPost-HTML" );
 
-            bool hideActiveGroupCheckbox = this.GetAttributeValue( "HideActiveGroupCheckbox" ).AsBooleanOrNull() ?? false;
+            bool hideActiveGroupCheckbox = GetAttributeValue( "HideActiveGroupCheckbox" ).AsBooleanOrNull() ?? false;
             if ( hideActiveGroupCheckbox )
             {
                 cbIsActive.Visible = false;
             }
 
-            bool hideDescriptionEdit = this.GetAttributeValue( "HideGroupDescriptionEdit" ).AsBooleanOrNull() ?? false;
+            bool hideDescriptionEdit = GetAttributeValue( "HideGroupDescriptionEdit" ).AsBooleanOrNull() ?? false;
             if ( hideDescriptionEdit )
             {
                 tbDescription.Visible = false;
@@ -617,7 +621,7 @@ namespace org_kcionline.Groups
                     group.Members = group.Members.OrderBy( m => m.Person.LastName ).ThenBy( m => m.Person.FirstName ).ToList();
                 }
 
-                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+                var mergeFields = LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
                 mergeFields.Add( "Group", group );
 
                 // add linked pages
@@ -631,7 +635,7 @@ namespace org_kcionline.Groups
                 // add collection of allowed security actions
                 Dictionary<string, object> securityActions = new Dictionary<string, object>();
                 securityActions.Add( "View", group != null && group.IsAuthorized( Authorization.VIEW, CurrentPerson ) );
-                securityActions.Add( "Edit", group != null && group.IsAuthorized( Authorization.EDIT, CurrentPerson ) );
+                securityActions.Add( "Edit", group != null && ( group.IsAuthorized( Authorization.EDIT, CurrentPerson ) || LineQuery.IsGroupInPersonsLine(group, CurrentPerson) ) );
                 securityActions.Add( "Administrate", group != null && group.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson ) );
                 mergeFields.Add( "AllowedActions", securityActions );
 
@@ -671,7 +675,7 @@ namespace org_kcionline.Groups
         /// </summary>
         private void DisplayEditGroup()
         {
-            this.IsEditingGroup = true;
+            IsEditingGroup = true;
 
             if ( _groupId != -1 )
             {
@@ -684,7 +688,7 @@ namespace org_kcionline.Groups
 
                 var group = qry.FirstOrDefault();
 
-                if ( group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+                if ( group.IsAuthorized( Authorization.EDIT, CurrentPerson ) || LineQuery.IsGroupInPersonsLine( group, CurrentPerson ) )
                 {
                     tbName.Text = group.Name;
                     tbDescription.Text = group.Description;
@@ -711,7 +715,7 @@ namespace org_kcionline.Groups
 
                     group.LoadAttributes();
                     phAttributes.Controls.Clear();
-                    Rock.Attribute.Helper.AddEditControls( group, phAttributes, true, BlockValidationGroup );
+                    Helper.AddEditControls( group, phAttributes, true, BlockValidationGroup );
 
                     // enable editing location
                     pnlGroupEditLocations.Visible = GetAttributeValue( "EnableLocationEdit" ).AsBoolean();
@@ -785,7 +789,7 @@ namespace org_kcionline.Groups
                         if ( displayMemberTab )
                         {
                             var personService = new PersonService( rockContext );
-                            Guid previousLocationType = Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid();
+                            Guid previousLocationType = DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid();
 
                             foreach ( GroupMember member in new GroupMemberService( rockContext ).GetByGroupId( group.Id ) )
                             {
@@ -795,7 +799,7 @@ namespace org_kcionline.Groups
                                         .Where( l => l.IsMappedLocation && !l.GroupLocationTypeValue.Guid.Equals( previousLocationType ) ) )
                                     {
                                         ListItem li = new ListItem(
-                                            string.Format( "{0} {1} ({2})", member.Person.FullName, familyGroupLocation.GroupLocationTypeValue.Value, familyGroupLocation.Location.ToString() ),
+                                            string.Format( "{0} {1} ({2})", member.Person.FullName, familyGroupLocation.GroupLocationTypeValue.Value, familyGroupLocation.Location ),
                                             string.Format( "{0}|{1}", familyGroupLocation.Location.Id, member.PersonId ) );
 
                                         ddlMember.Items.Add( li );
@@ -835,7 +839,7 @@ namespace org_kcionline.Groups
                                 int? personId = new PersonAliasService( rockContext ).GetPersonId( groupLocation.GroupMemberPersonAliasId.Value );
                                 if ( personId.HasValue )
                                 {
-                                    ExtensionMethods.SetValue(ddlMember, string.Format( "{0}|{1}", groupLocation.LocationId, personId.Value ) );
+                                    ddlMember.SetValue( string.Format( "{0}|{1}", groupLocation.LocationId, personId.Value ) );
                                 }
                             }
                             else if ( displayOtherTab )
@@ -843,7 +847,7 @@ namespace org_kcionline.Groups
                                 LocationTypeTab = OTHER_LOCATION_TAB_TITLE;
                             }
 
-                            ExtensionMethods.SetValue(ddlLocationType, groupLocation.GroupLocationTypeValueId );
+                            ddlLocationType.SetValue( groupLocation.GroupLocationTypeValueId );
                         }
                         else
                         {
@@ -903,7 +907,7 @@ namespace org_kcionline.Groups
         /// </summary>
         private void AddGroupMember()
         {
-            this.IsEditingGroupMember = true;
+            IsEditingGroupMember = true;
             var personAddPage = GetAttributeValue( "GroupMemberAddPage" );
 
             if ( personAddPage == null || personAddPage == string.Empty )
@@ -931,7 +935,7 @@ namespace org_kcionline.Groups
         private void DisplayEditGroupMember( int groupMemberId )
         {
             // persist the group member id for use in partial postbacks
-            this.CurrentGroupMemberId = groupMemberId;
+            CurrentGroupMemberId = groupMemberId;
 
             pnlGroupEdit.Visible = false;
             pnlGroupView.Visible = false;
@@ -956,12 +960,12 @@ namespace org_kcionline.Groups
 
             // set values
             ppGroupMemberPerson.SetValue( groupMember.Person );
-            ExtensionMethods.SetValue((ListControl) ddlGroupRole, groupMember.GroupRoleId );
-            ExtensionMethods.SetValue((ListControl) rblStatus, (int)groupMember.GroupMemberStatus );
-            bool hideGroupMemberInactiveStatus = this.GetAttributeValue( "HideInactiveGroupMemberStatus" ).AsBooleanOrNull() ?? false;
+            ddlGroupRole.SetValue( groupMember.GroupRoleId );
+            rblStatus.SetValue( ( int ) groupMember.GroupMemberStatus );
+            bool hideGroupMemberInactiveStatus = GetAttributeValue( "HideInactiveGroupMemberStatus" ).AsBooleanOrNull() ?? false;
             if ( hideGroupMemberInactiveStatus )
             {
-                var inactiveItem = rblStatus.Items.FindByValue( ( (int)GroupMemberStatus.Inactive ).ToString() );
+                var inactiveItem = rblStatus.Items.FindByValue( ( ( int ) GroupMemberStatus.Inactive ).ToString() );
                 if ( inactiveItem != null )
                 {
                     rblStatus.Items.Remove( inactiveItem );
@@ -971,9 +975,9 @@ namespace org_kcionline.Groups
             // set attributes
             groupMember.LoadAttributes();
             phGroupMemberAttributes.Controls.Clear();
-            Rock.Attribute.Helper.AddEditControls( groupMember, phGroupMemberAttributes, true, string.Empty, true );
+            Helper.AddEditControls( groupMember, phGroupMemberAttributes, true, string.Empty, true );
 
-            this.IsEditingGroupMember = true;
+            IsEditingGroupMember = true;
         }
 
         /// <summary>
@@ -989,7 +993,7 @@ namespace org_kcionline.Groups
                 ddlGroupRole.DataBind();
             }
 
-            ExtensionMethods.BindToEnum<GroupMemberStatus>(rblStatus);
+            rblStatus.BindToEnum<GroupMemberStatus>();
         }
 
         /// <summary>
@@ -1016,15 +1020,15 @@ namespace org_kcionline.Groups
         private void SendCommunication()
         {
             // create communication
-            if ( this.CurrentPerson != null && _groupId != -1 && !string.IsNullOrWhiteSpace( GetAttributeValue( "CommunicationPage" ) ) )
+            if ( CurrentPerson != null && _groupId != -1 && !string.IsNullOrWhiteSpace( GetAttributeValue( "CommunicationPage" ) ) )
             {
                 var rockContext = new RockContext();
-                var service = new Rock.Model.CommunicationService( rockContext );
-                var communication = new Rock.Model.Communication();
+                var service = new CommunicationService( rockContext );
+                var communication = new Communication();
                 communication.IsBulkCommunication = false;
-                communication.Status = Rock.Model.CommunicationStatus.Transient;
+                communication.Status = CommunicationStatus.Transient;
 
-                communication.SenderPersonAliasId = this.CurrentPersonAliasId;
+                communication.SenderPersonAliasId = CurrentPersonAliasId;
 
                 service.Add( communication );
 
@@ -1037,7 +1041,7 @@ namespace org_kcionline.Groups
                 // Get the primary aliases
                 foreach ( int personAlias in personAliasIds )
                 {
-                    var recipient = new Rock.Model.CommunicationRecipient();
+                    var recipient = new CommunicationRecipient();
                     recipient.PersonAliasId = personAlias;
                     communication.Recipients.Add( recipient );
                 }
