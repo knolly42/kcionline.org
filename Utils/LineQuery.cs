@@ -93,11 +93,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                                       .Select( gm => gm.PersonId ).ToList();
 
                 // Get people's follow ups
-                int consolidatedByGroupTypeRoleId = new GroupTypeRoleService( rockContext ).Get( SystemGuid.GroupTypeRole.CONSOLIDATED_BY.AsGuid() ).Id;
+                int consolidatorGroupTypeRoleId = new GroupTypeRoleService( rockContext ).Get( SystemGuid.GroupTypeRole.CONSOLIDATOR.AsGuid() ).Id;
                 var followUpIds = new List<int>();
                 foreach ( int personId in linePersonIds )
                 {
-                    followUpIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
+                    followUpIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatorGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
                 }
 
                 //Remove people who are in a group (not leaders or coordinators)
@@ -109,7 +109,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                                           gm =>
                                               followUpIds.Any(fId => gm.PersonId == fId) &&
                                               gm.Group.GroupTypeId == cellGroupType.Id &&
-                                              gm.GroupRole.Guid != consolidatorCoordinatorGuid && !gm.GroupRole.IsLeader)
+                                              (gm.GroupRole.Guid == consolidatorCoordinatorGuid || gm.GroupRole.IsLeader))
                                       .Select(gm => gm.PersonId)
                                       .ToList();
                 foreach (int idToRemove in idsToRemove )
