@@ -26,22 +26,28 @@
             <asp:Panel ID="pnlReadDetails" runat="server">
                 <div class="panel-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-2">
+                            <div class="photo">
+                                <asp:Literal ID="lPortrait" runat="server" />
+                            </div>
+                        </div>
+                        <div class="col-md-8">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <div class="photo">
-                                        <asp:Literal ID="lPortrait" runat="server" />
-                                    </div>
-                                </div>
-                                <div class="col-md-8">
                                     <Rock:RockLiteral ID="lContactInfo" runat="server" Label="Contact Info" />
                                     <Rock:RockLiteral ID="lConnector" runat="server" Label="Connector" />
                                 </div>
+                                <div class="col-md-4">
+                                    <Rock:RockLiteral ID="lRequestDate" runat="server" Label="Request Date" />
+                                    <Rock:RockLiteral ID="lPlacementGroup" runat="server" Label="Placement Group" />
+                                </div>
+                                <div class="col-md-4">
+                                    <asp:Panel runat="server" CssClass="margin-b-sm" ID="pnlBadges">
+                                        <Rock:PersonProfileBadgeList ID="blStatus" runat="server" />
+                                    </asp:Panel>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <Rock:RockLiteral ID="lRequestDate" runat="server" Label="Request Date" />
-                            <Rock:RockLiteral ID="lPlacementGroup" runat="server" Label="Placement Group" />
+
                         </div>
                     </div>
 
@@ -160,20 +166,6 @@
         </asp:Panel>
 
         </div>
-
-        <Rock:PanelWidget ID="wpConnectionRequestWorkflow" runat="server" Title="Workflows" CssClass="clickable">
-            <div class="grid">
-                <Rock:Grid ID="gConnectionRequestWorkflows" runat="server" AllowPaging="false" DisplayType="Light" RowItemText="Location" OnRowSelected="gConnectionRequestWorkflows_RowSelected">
-                    <Columns>
-                        <Rock:RockBoundField DataField="WorkflowType" HeaderText="Workflow Type" />
-                        <Rock:RockBoundField DataField="Trigger" HeaderText="Trigger" />
-                        <Rock:RockBoundField DataField="CurrentActivity" HeaderText="Current Activity" />
-                        <Rock:RockBoundField DataField="Date" HeaderText="Start Date" />
-                        <Rock:RockBoundField DataField="Status" HeaderText="Status" HtmlEncode="false" />
-                    </Columns>
-                </Rock:Grid>
-            </div>
-        </Rock:PanelWidget>
 
         <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="Activities" Expanded="true" CssClass="clickable">
             <div class="grid">

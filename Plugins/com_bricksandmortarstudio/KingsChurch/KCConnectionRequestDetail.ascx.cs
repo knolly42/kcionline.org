@@ -38,14 +38,14 @@ namespace RockWeb.Plugins.KingsChurch
     [Description( "Displays the details of the given connection request for editing state, status, etc." )]
 
     [LinkedPage( "Person Profile Page", "Page used for viewing a person's profile. If set a view profile button will show for each group member.", false, order: 0 )]
-    [LinkedPage( "Workflow Detail Page", "Page used to display details about a workflow.", order: 1, required:false )]
+    [LinkedPage( "Workflow Detail Page", "Page used to display details about a workflow.", order: 1, required: false )]
     [LinkedPage( "Workflow Entry Page", "Page used to launch a new workflow of the selected type.", order: 2 )]
-    [LinkedPage( "Group Detail Page", "Page used to display group details.", order: 3, required:false )]
-    [WorkflowTypeField( "Reassign Workflow Type", "The workflow type fired when a person is transferred", order: 4)]
-    [TextField( "Reassign Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 5)]
+    [LinkedPage( "Group Detail Page", "Page used to display group details.", order: 3, required: false )]
+    [WorkflowTypeField( "Reassign Workflow Type", "The workflow type fired when a person is transferred", order: 4 )]
+    [TextField( "Reassign Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 5 )]
     [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred", order: 6 )]
-    [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7)]
-    [BooleanField("Show Workflow Buttons", "Whether to show workflow buttons or not", false, order:8 )]
+    [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7 )]
+    [BooleanField( "Show Workflow Buttons", "Whether to show workflow buttons or not", false, order: 8 )]
     public partial class KCConnectionRequestDetail : RockBlock, IDetailBlock
     {
 
@@ -98,9 +98,6 @@ namespace RockWeb.Plugins.KingsChurch
             gConnectionRequestActivities.GridRebind += gConnectionRequestActivities_GridRebind;
             gConnectionRequestActivities.RowDataBound += gConnectionRequestActivities_RowDataBound;
 
-            gConnectionRequestWorkflows.DataKeyNames = new string[] { "Guid" };
-            gConnectionRequestWorkflows.GridRebind += gConnectionRequestWorkflows_GridRebind;
-
             rptRequestWorkflows.ItemCommand += rptRequestWorkflows_ItemCommand;
 
             string confirmConnectScript = @"
@@ -117,6 +114,28 @@ namespace RockWeb.Plugins.KingsChurch
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.AddConfigurationUpdateTrigger( upDetail );
+
+            string badgeList = GetAttributeValue( "Badges" );
+            if ( !string.IsNullOrWhiteSpace( badgeList ) )
+            {
+                pnlBadges.Visible = true;
+                foreach ( string badgeGuid in badgeList.SplitDelimitedValues() )
+                {
+                    Guid guid = badgeGuid.AsGuid();
+                    if ( guid != Guid.Empty )
+                    {
+                        var personBadge = PersonBadgeCache.Read( guid );
+                        if ( personBadge != null )
+                        {
+                            blStatus.PersonBadges.Add( personBadge );
+                        }
+                    }
+                }
+            }
+            else
+            {
+                pnlBadges.Visible = false;
+            }
         }
 
         /// <summary>
@@ -129,6 +148,28 @@ namespace RockWeb.Plugins.KingsChurch
 
             nbErrorMessage.Visible = false;
             nbRequirementsErrors.Visible = false;
+
+            string badgeList = GetAttributeValue( "Badges" );
+            if ( !string.IsNullOrWhiteSpace( badgeList ) )
+            {
+                pnlBadges.Visible = true;
+                foreach ( string badgeGuid in badgeList.SplitDelimitedValues() )
+                {
+                    Guid guid = badgeGuid.AsGuid();
+                    if ( guid != Guid.Empty )
+                    {
+                        var personBadge = PersonBadgeCache.Read( guid );
+                        if ( personBadge != null )
+                        {
+                            blStatus.PersonBadges.Add( personBadge );
+                        }
+                    }
+                }
+            }
+            else
+            {
+                pnlBadges.Visible = false;
+            }
 
             if ( !Page.IsPostBack )
             {
@@ -221,7 +262,6 @@ namespace RockWeb.Plugins.KingsChurch
                 ShowReadonlyDetails( new ConnectionRequestService( new RockContext() ).Get( connectionRequestId ) );
                 pnlReadDetails.Visible = true;
                 wpConnectionRequestActivities.Visible = true;
-                wpConnectionRequestWorkflow.Visible = true;
                 pnlEditDetails.Visible = false;
                 pnlTransferDetails.Visible = false;
                 pnlReassignDetails.Visible = false;
@@ -240,7 +280,7 @@ namespace RockWeb.Plugins.KingsChurch
         protected void btnSave_Click( object sender, EventArgs e )
         {
             if ( Page.IsValid )
-            {                
+            {
                 using ( var rockContext = new RockContext() )
                 {
                     var connectionRequestService = new ConnectionRequestService( rockContext );
@@ -315,7 +355,6 @@ namespace RockWeb.Plugins.KingsChurch
                 {
                     pnlReadDetails.Visible = false;
                     wpConnectionRequestActivities.Visible = false;
-                    wpConnectionRequestWorkflow.Visible = false;
                     pnlReassignDetails.Visible = true;
                     if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
                     {
@@ -337,7 +376,6 @@ namespace RockWeb.Plugins.KingsChurch
                 {
                     pnlReadDetails.Visible = false;
                     wpConnectionRequestActivities.Visible = false;
-                    wpConnectionRequestWorkflow.Visible = false;
                     pnlTransferDetails.Visible = true;
                     if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
                     {
@@ -446,7 +484,6 @@ namespace RockWeb.Plugins.KingsChurch
 
                             pnlReadDetails.Visible = true;
                             wpConnectionRequestActivities.Visible = true;
-                            wpConnectionRequestWorkflow.Visible = true;
                             pnlReassignDetails.Visible = false;
                             pnlTransferDetails.Visible = false;
 
@@ -495,7 +532,7 @@ namespace RockWeb.Plugins.KingsChurch
                             connectionRequestActivityService.Add( connectionRequestActivity );
 
                             connectionRequest.AssignedGroupId = null;
-                            
+
                             connectionRequest.ConnectorPersonAliasId = ppTransfer.PersonAliasId;
 
                             rockContext.SaveChanges();
@@ -535,7 +572,6 @@ namespace RockWeb.Plugins.KingsChurch
 
                             pnlReadDetails.Visible = true;
                             wpConnectionRequestActivities.Visible = true;
-                            wpConnectionRequestWorkflow.Visible = true;
                             pnlReassignDetails.Visible = false;
                             pnlTransferDetails.Visible = false;
 
@@ -640,90 +676,7 @@ namespace RockWeb.Plugins.KingsChurch
             }
         }
 
-        #endregion
-
-        #region ConnectionRequestWorkflow Events
-
-        /// <summary>
-        /// Handles the GridRebind event of the gConnectionRequestWorkflows control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void gConnectionRequestWorkflows_GridRebind( object sender, EventArgs e )
-        {
-            BindConnectionRequestWorkflowsGrid();
-        }
-
-        /// <summary>
-        /// Binds the connection request workflows grid.
-        /// </summary>
-        private void BindConnectionRequestWorkflowsGrid()
-        {
-            using ( var rockContext = new RockContext() )
-            {
-                var connectionRequestService = new ConnectionRequestService( rockContext );
-                var connectionRequest = connectionRequestService.Get( hfConnectionRequestId.ValueAsInt() );
-                if ( connectionRequest != null )
-                {
-                    var instantiatedWorkflows = connectionRequest.ConnectionRequestWorkflows
-                        .Where( c =>
-                            c.Workflow != null &&
-                            c.Workflow.WorkflowType != null )
-                        .ToList();
-
-                    gConnectionRequestWorkflows.DataSource = instantiatedWorkflows
-                        .Select( c => new
-                        {
-                            c.Id,
-                            c.Guid,
-                            WorkflowType = c.Workflow.WorkflowType.Name,
-                            Trigger = c.TriggerType.ConvertToString(),
-                            CurrentActivity = c.Workflow.ActiveActivityNames,
-                            Date = c.Workflow.ActivatedDateTime.Value.ToShortDateString(),
-                            OrderByDate = c.Workflow.ActivatedDateTime.Value,
-                            Status = c.Workflow.Status == "Completed" ? "<span class='label label-success'>Complete</span>" : "<span class='label label-info'>Running</span>"
-                        } )
-                        .OrderByDescending( c => c.OrderByDate )
-                        .ToList();
-                    gConnectionRequestWorkflows.DataBind();
-
-                    if ( !instantiatedWorkflows.Any() )
-                    {
-                        wpConnectionRequestWorkflow.Visible = false;
-                    }
-                    else
-                    {
-                        wpConnectionRequestWorkflow.Title = String.Format( "Workflows <span class='badge badge-info'>{0}</span>", instantiatedWorkflows.Count.ToString() );
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Handles the RowSelected event of the gConnectionRequestWorkflows control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
-        protected void gConnectionRequestWorkflows_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
-        {
-            var requestWorkflow = new ConnectionRequestWorkflowService( new RockContext() ).Get( e.RowKeyValue.ToString().AsGuid() );
-            if ( requestWorkflow != null && requestWorkflow.Workflow != null )
-            {
-                if ( requestWorkflow.Workflow.HasActiveEntryForm( CurrentPerson ) )
-                {
-                    var qryParam = new Dictionary<string, string>();
-                    qryParam.Add( "WorkflowTypeId", requestWorkflow.Workflow.WorkflowTypeId.ToString() );
-                    qryParam.Add( "WorkflowId", requestWorkflow.Workflow.Id.ToString() );
-                    NavigateToLinkedPage( "WorkflowEntryPage", qryParam );
-                }
-                else
-                {
-                    NavigateToLinkedPage( "WorkflowDetailPage", "workflowId", requestWorkflow.Workflow.Id );
-                }
-            }
-        }
-
-        #endregion
+        #endregion       
 
         #region ConnectionRequestActivity Events
 
@@ -1013,49 +966,58 @@ namespace RockWeb.Plugins.KingsChurch
 
                 if ( connectionOpportunity != null && connectionRequest != null )
                 {
-                    hfConnectionOpportunityId.Value = connectionRequest.ConnectionOpportunityId.ToString();
-                    hfConnectionRequestId.Value = connectionRequest.Id.ToString();
-                    lConnectionOpportunityIconHtml.Text = string.Format( "<i class='{0}' ></i>", connectionOpportunity.IconCssClass );
-
-                    pnlReadDetails.Visible = true;
-
-                    if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
+                    if ( connectionRequest.Id != 0 && PageParameter( "PersonId" ).AsIntegerOrNull() == null )
                     {
-                        lTitle.Text = connectionRequest.PersonAlias.Person.FullName.FormatAsHtmlTitle();
+                        var qryParams = new Dictionary<string, string>();
+                        qryParams["ConnectionOpportunityId"] = PageParameter( "ConnectionOpportunityId" );
+                        qryParams["ConnectionRequestId"] = PageParameter( "ConnectionRequestId" );
+                        qryParams["PersonId"] = connectionRequest.PersonAlias.PersonId.ToString();
+
+                        NavigateToPage( RockPage.Guid, qryParams );
                     }
                     else
                     {
-                        lTitle.Text = String.Format( "New {0} Connection Request", connectionOpportunity.Name );
-                    }
+                        hfConnectionOpportunityId.Value = connectionRequest.ConnectionOpportunityId.ToString();
+                        hfConnectionRequestId.Value = connectionRequest.Id.ToString();
+                        lConnectionOpportunityIconHtml.Text = string.Format( "<i class='{0}' ></i>", connectionOpportunity.IconCssClass );
 
-                    // Only users that have Edit rights to block, or edit rights to the opportunity
-                    if ( !editAllowed )
-                    {
-                        editAllowed = connectionRequest.IsAuthorized( Authorization.EDIT, CurrentPerson );
-                    }
+                        pnlReadDetails.Visible = true;
 
-                    // Grants edit access to those in the opportunity's connector groups
-                    if ( !editAllowed && CurrentPersonId.HasValue )
-                    {
-                        // Grant edit access to any of those in a non campus-specific connector group
-                        editAllowed = connectionOpportunity.ConnectionOpportunityConnectorGroups
-                            .Any( g =>
-                                !g.CampusId.HasValue &&
-                                g.ConnectorGroup != null &&
-                                g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId ) );
+                        if ( connectionRequest.PersonAlias != null && connectionRequest.PersonAlias.Person != null )
+                        {
+                            lTitle.Text = connectionRequest.PersonAlias.Person.FullName.FormatAsHtmlTitle();
+                        }
+                        else
+                        {
+                            lTitle.Text = String.Format( "New {0} Connection Request", connectionOpportunity.Name );
+                        }
 
+                        // Only users that have Edit rights to block, or edit rights to the opportunity
                         if ( !editAllowed )
                         {
-                            //If this is a new request, grant edit access to any connector group. Otherwise, match the request's campus to the corresponding campus-specific connector group
-                            foreach ( var groupCampus in connectionOpportunity
-                                .ConnectionOpportunityConnectorGroups
-                                .Where( g =>
-                                    ( connectionRequest.Id == 0 || ( connectionRequest.CampusId.HasValue && g.CampusId == connectionRequest.CampusId.Value ) ) &&
-                                    g.ConnectorGroup != null &&
-                                    g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId ) ) )
+                            editAllowed = connectionRequest.IsAuthorized( Authorization.EDIT, CurrentPerson );
+                        }
+
+                        // Grants edit access to those in the opportunity's connector groups
+                        if ( !editAllowed && CurrentPersonId.HasValue )
+                        {
+                            // Grant edit access to any of those in a non campus-specific connector group
+                            editAllowed = connectionOpportunity.ConnectionOpportunityConnectorGroups
+                                                               .Any(g =>
+                                                                   !g.CampusId.HasValue &&
+                                                                   g.ConnectorGroup != null &&
+                                                                   g.ConnectorGroup.Members.Any(
+                                                                        m => m.PersonId == CurrentPersonId));
+                            if (!editAllowed)
                             {
-                                editAllowed = true;
-                                break;
+                                //If this is a new request, grant edit access to any connector group. Otherwise, match the request's campus to the corresponding campus-specific connector group
+                                if (connectionOpportunity
+                                    .ConnectionOpportunityConnectorGroups.Any(g => ( connectionRequest.Id == 0 || ( connectionRequest.CampusId.HasValue && g.CampusId == connectionRequest.CampusId.Value ) ) &&
+                                        g.ConnectorGroup != null &&
+                                        g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId )))
+                                {
+                                    editAllowed = true;
+                                }
                             }
                         }
                     }
@@ -1215,7 +1177,7 @@ namespace RockWeb.Plugins.KingsChurch
                 hlCampus.Text = connectionRequest.Campus != null ? connectionRequest.Campus.Name : string.Empty;
 
                 pnlWorkflows.Visible = GetAttributeValue( "ShowWorkflowButtons" ).AsBoolean();
-                
+
                 if ( connectionRequest.ConnectionOpportunity != null )
                 {
                     var connectionWorkflows = connectionRequest.ConnectionOpportunity.ConnectionWorkflows.Union( connectionRequest.ConnectionOpportunity.ConnectionType.ConnectionWorkflows );
@@ -1239,7 +1201,6 @@ namespace RockWeb.Plugins.KingsChurch
                 }
 
                 BindConnectionRequestActivitiesGrid( connectionRequest, new RockContext() );
-                BindConnectionRequestWorkflowsGrid();
             }
             else
             {
@@ -1260,7 +1221,6 @@ namespace RockWeb.Plugins.KingsChurch
             btnSave.Visible = true;
             pnlReadDetails.Visible = false;
             wpConnectionRequestActivities.Visible = false;
-            wpConnectionRequestWorkflow.Visible = false;
             pnlEditDetails.Visible = true;
             lRequestor.Text = connectionRequest.PersonAlias.Person.FullName;
             if ( connectionRequest.ConnectorPersonAliasId != null )
