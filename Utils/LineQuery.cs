@@ -99,6 +99,23 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 {
                     followUpIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
                 }
+
+                //Remove people who are in a group (not leaders or coordinators)
+                var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+                var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+                var idsToRemove =
+                    groupMemberService.Queryable()
+                                      .Where(
+                                          gm =>
+                                              followUpIds.Any(fId => gm.PersonId == fId) &&
+                                              gm.Group.GroupTypeId == cellGroupType.Id &&
+                                              gm.GroupRole.Guid != consolidatorCoordinatorGuid && !gm.GroupRole.IsLeader)
+                                      .Select(gm => gm.PersonId)
+                                      .ToList();
+                foreach (int idToRemove in idsToRemove )
+                {
+                    followUpIds.Remove(idToRemove);
+                }
                 return personService.GetByIds( followUpIds ).Distinct();
             }
         }
@@ -205,6 +222,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             var connectionRequests = connectionRequestService
                                     .Queryable()
                                     .Where( c => c.ConnectionOpportunityId == getConnectedOpportunityId && c.ConnectorPersonAliasId == currentPerson.PrimaryAliasId && c.ConnectionState == ConnectionState.Active );
+
 
             return connectionRequests;
         }
