@@ -96,7 +96,6 @@ namespace RockWeb.Plugins.KingsChurch
             gConnectionRequestActivities.Actions.ShowAdd = true;
             gConnectionRequestActivities.Actions.AddClick += gConnectionRequestActivities_Add;
             gConnectionRequestActivities.GridRebind += gConnectionRequestActivities_GridRebind;
-            gConnectionRequestActivities.RowDataBound += gConnectionRequestActivities_RowDataBound;
 
             rptRequestWorkflows.ItemCommand += rptRequestWorkflows_ItemCommand;
 
@@ -776,31 +775,6 @@ namespace RockWeb.Plugins.KingsChurch
         }
 
         /// <summary>
-        /// Handles the RowDataBound event of the gConnectionRequestActivities control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="GridViewRowEventArgs"/> instance containing the event data.</param>
-        protected void gConnectionRequestActivities_RowDataBound( object sender, GridViewRowEventArgs e )
-        {
-            int connectionOpportunityId = hfConnectionOpportunityId.ValueAsInt();
-            if ( e.Row.RowType == DataControlRowType.DataRow )
-            {
-                int? opportunityId = e.Row.DataItem.GetPropertyValue( "OpportunityId" ) as int?;
-                if ( opportunityId.HasValue && opportunityId.Value == connectionOpportunityId )
-                {
-                    e.Row.AddCssClass( "info" );
-                }
-
-                bool canEdit = e.Row.DataItem.GetPropertyValue( "CanEdit" ) as bool? ?? false;
-                if ( !canEdit )
-                {
-                    var lbDelete = e.Row.Cells[5].Controls[0] as LinkButton;
-                    lbDelete.Enabled = false;
-                }
-            }
-        }
-
-        /// <summary>
         /// Handles the Delete event of the gConnectionRequestActivities control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -963,6 +937,7 @@ namespace RockWeb.Plugins.KingsChurch
                 {
                     connectionOpportunity = connectionRequest.ConnectionOpportunity;
                 }
+
 
                 if ( connectionOpportunity != null && connectionRequest != null )
                 {
