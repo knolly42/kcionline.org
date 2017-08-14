@@ -254,7 +254,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
         {
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
-            var allowedPersons = Utils.LineQuery.GetPeopleInLineAndTheirFollowUps( personService, GetPerson(), rockContext, true );
+            var allowedPersons = Utils.LineQuery.GetPeopleInLineFollowUps( personService, GetPerson(), rockContext, true );
             var firstNames = new List<string>();
             var lastNames = new List<string>();
             string singleName = string.Empty;

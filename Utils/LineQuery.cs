@@ -69,7 +69,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             }
         }
 
-        public static IQueryable<Person> GetPeopleInLineAndTheirFollowUps( PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff )
+        public static IQueryable<Person> GetPeopleInLineFollowUps( PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
             if ( currentPerson == null )
             {
@@ -99,7 +99,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 {
                     followUpIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatedByGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
                 }
-                return personService.GetByIds( linePersonIds.Union( followUpIds ).ToList() ).Distinct();
+                return personService.GetByIds( followUpIds ).Distinct();
             }
         }
 
