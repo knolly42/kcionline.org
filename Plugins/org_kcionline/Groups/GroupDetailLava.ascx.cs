@@ -639,6 +639,7 @@ namespace org_kcionline.Groups
                 securityActions.Add( "Edit", group != null && ( group.IsAuthorized( Authorization.EDIT, CurrentPerson ) || LineQuery.IsGroupInPersonsLine(group, CurrentPerson) ) );
                 securityActions.Add( "Administrate", group != null && group.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson ) );
                 mergeFields.Add( "AllowedActions", securityActions );
+                mergeFields.Add( "LinePermission", LineQuery.IsGroupInPersonsLine( group, CurrentPerson ) );
 
                 Dictionary<string, object> currentPageProperties = new Dictionary<string, object>();
                 currentPageProperties.Add( "Id", RockPage.PageId );
