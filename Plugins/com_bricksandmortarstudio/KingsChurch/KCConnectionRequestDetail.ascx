@@ -10,7 +10,7 @@
 
         <div class="panel panel-block">
 
-            <div class="panel-heading">
+            <div class="panel-heading" style="display: block">
                 <h1 class="panel-title">
                     <asp:Literal ID="lConnectionOpportunityIconHtml" runat="server" />
                     <asp:Literal ID="lTitle" runat="server" />
@@ -180,8 +180,6 @@
                 </Rock:Grid>
             </div>
         </Rock:PanelWidget>
-
-        <small><Rock:PanelDrawer ID="pdAuditDetails" runat="server" Expanded="true"></Rock:PanelDrawer></small>
 
         <Rock:ModalDialog ID="dlgConnectionRequestActivities" runat="server" SaveButtonText="Add" OnSaveClick="btnAddConnectionRequestActivity_Click" Title="Add Activity" ValidationGroup="Activity">
             <Content>
