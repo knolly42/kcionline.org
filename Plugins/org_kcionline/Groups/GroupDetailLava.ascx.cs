@@ -41,6 +41,7 @@ namespace org_kcionline.Groups
     [CodeEditorField( "Edit Group Post-HTML", "HTML to display after the edit group panel.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, false, "", "HTML Wrappers", 12 )]
     [CodeEditorField( "Edit Group Member Pre-HTML", "HTML to display before the edit group member panel.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, false, "", "HTML Wrappers", 13 )]
     [CodeEditorField( "Edit Group Member Post-HTML", "HTML to display after the edit group member panel.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, false, "", "HTML Wrappers", 14 )]
+    [BooleanField( "Show Time Field", "Whether or not to show the time field", false, order: 5 )]
     public partial class GroupDetailLava : RockBlock
     {
         #region Fields
@@ -693,6 +694,8 @@ namespace org_kcionline.Groups
                     tbName.Text = group.Name;
                     tbDescription.Text = group.Description;
                     cbIsActive.Checked = group.IsActive;
+
+                    timeWeekly.Visible = GetAttributeValue("ShowTimeField").AsBoolean();
 
                     if ( ( group.GroupType.AllowedScheduleTypes & ScheduleType.Weekly ) == ScheduleType.Weekly )
                     {
