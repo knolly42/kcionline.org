@@ -73,6 +73,7 @@
     <Compile Include="Rest\LinePeopleAndFollowUpsController.Partial.cs" />
     <Compile Include="Rest\ConsolidationCoordinatorsAndLeaders.Partial.cs" />
     <Compile Include="Rest\LinePeopleController.Partial.cs" />
+    <Compile Include="SystemGuid\ConnectionType.cs" />
     <Compile Include="SystemGuid\ConnectionOpportunity.cs" />
     <Compile Include="SystemGuid\GroupType.cs" />
     <Compile Include="SystemGuid\GroupTypeRole.cs" />
