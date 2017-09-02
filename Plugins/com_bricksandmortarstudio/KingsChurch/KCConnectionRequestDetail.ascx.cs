@@ -30,6 +30,8 @@ namespace RockWeb.Plugins.KingsChurch
     [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred", order: 6 )]
     [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7 )]
     [BooleanField( "Show Workflow Buttons", "Whether to show workflow buttons or not", false, order: 8 )]
+    [BooleanField( "Coordinator View", "Is the block for coordinators? (Otherwise will allow admin functionality)", true, order: 9 )]
+
     public partial class KCConnectionRequestDetail : RockBlock, IDetailBlock
     {
 
@@ -984,8 +986,9 @@ namespace RockWeb.Plugins.KingsChurch
                     lbEdit.Visible = editAllowed;
                     lbReassign.Visible = editAllowed;
                     lbTransfer.Visible = editAllowed;
-                    gConnectionRequestActivities.IsDeleteEnabled = editAllowed;
-                    gConnectionRequestActivities.Actions.ShowAdd = editAllowed;
+                    var isCoordinator = GetAttributeValue( "Coordinator View" ).AsBoolean();
+                    gConnectionRequestActivities.IsDeleteEnabled = !isCoordinator;
+                    gConnectionRequestActivities.Actions.ShowAdd = !isCoordinator;
 
                     if ( !editAllowed )
                     {
