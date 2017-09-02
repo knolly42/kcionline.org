@@ -231,5 +231,49 @@ namespace org.kcionline.bricksandmortarstudio.Utils
         {
             return GetCellGroupsInLine( currentPerson, new RockContext(), false ).ToList().Any( g => g.Id == group.Id );
         }
+
+        public static Group FindLineLeader (Person currentPerson)
+        {
+            var rockContext = new RockContext();
+            var groupMemberService = new GroupMemberService(rockContext);
+            var kciSmallGroupType = SystemGuid.GroupType.CELL_GROUP.AsGuid();
+
+            // Attempt to find a group with them in
+            var currentGroup =
+                groupMemberService.Queryable()
+                                  .Where(
+                                      gm =>
+                                          gm.PersonId == currentPerson.Id &&
+                                          gm.Group.GroupType.Guid == kciSmallGroupType && !gm.GroupRole.IsLeader).Select(gm => gm.Group).FirstOrDefault();
+
+
+
+            // If only top group found they are the line leader, so we'll grab the top of their line
+            if (currentGroup?.ParentGroup == null)
+            {
+                currentGroup =
+                    groupMemberService.Queryable()
+                                      .Where(
+                                          gm =>
+                                              gm.PersonId == currentPerson.Id && gm.GroupRole.IsLeader &&
+                                              gm.Group.ParentGroupId == currentGroup.Id)
+                                      .Select(gm => gm.Group)
+                                      .FirstOrDefault();
+            }
+
+            if ( currentGroup == null )
+            {
+                return null;
+            }
+
+            // Keep going up the heirachy until we can't
+            Group previousGroup = null;
+            while (currentGroup.ParentGroup != null)
+            {
+                previousGroup = currentGroup;
+                currentGroup = previousGroup.ParentGroup;
+            }
+            return previousGroup;
+        } 
     }
 }
