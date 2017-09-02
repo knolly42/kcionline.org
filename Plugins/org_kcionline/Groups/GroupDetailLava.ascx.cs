@@ -955,6 +955,9 @@ namespace org_kcionline.Groups
                 groupMember.GroupMemberStatus = GroupMemberStatus.Active;
             }
 
+
+            lGroupName.Text = groupMember.Group.Name;
+
             // load dropdowns
             LoadGroupMemberDropDowns( _groupId );
 
