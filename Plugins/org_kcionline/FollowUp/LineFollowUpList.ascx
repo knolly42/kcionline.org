@@ -1,4 +1,5 @@
 <%@ Control Language="C#" AutoEventWireup="true" CodeFile="LineFollowUpList.ascx.cs" Inherits="org_kcionline.FollowUp.LineFollowUpList" %>
+<%@ Register TagPrefix="KCIOnline" Assembly="org.kcionline.bricksandmortarstudio" Namespace="org.kcionline.bricksandmortarstudio.Web.UI" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
@@ -10,6 +11,11 @@
             <div class="panel-body">
 
                 <div class="grid grid-panel">
+                     <Rock:GridFilter ID="gFilter" runat="server">
+                        <KCIOnline:LinePersonPicker ID="ppConsolidator" runat="server" Label="Consolidator" />
+                        <Rock:DateRangePicker ID="drpDates" runat="server" Label="Submitted" />
+                        <Rock:RockDropDownList ID="ddlStatus" runat="server" Label="Status" />
+                    </Rock:GridFilter>
                     <Rock:Grid ID="gList" runat="server" AllowPaging="True" DataKeyNames="Id" OnRowSelected="gList_OnRowSelected" AllowSorting="true">
                         <Columns>
                             <Rock:RockBoundField DataField="Consolidator.FullName" HeaderText="Consolidator" SortExpression="Consolidator.FullName" />
