@@ -986,7 +986,7 @@ namespace RockWeb.Plugins.KingsChurch
                     lbEdit.Visible = editAllowed;
                     lbReassign.Visible = editAllowed;
                     lbTransfer.Visible = editAllowed;
-                    var isCoordinator = GetAttributeValue( "Coordinator View" ).AsBoolean();
+                    var isCoordinator = GetAttributeValue( "CoordinatorView" ).AsBooleanOrNull() ?? true;
                     gConnectionRequestActivities.IsDeleteEnabled = !isCoordinator;
                     gConnectionRequestActivities.Actions.ShowAdd = !isCoordinator;
 
