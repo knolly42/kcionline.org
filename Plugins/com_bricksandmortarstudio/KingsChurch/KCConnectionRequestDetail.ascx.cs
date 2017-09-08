@@ -408,63 +408,40 @@ namespace RockWeb.Plugins.KingsChurch
                 using ( var rockContext = new RockContext() )
                 {
                     var connectionRequestService = new ConnectionRequestService( rockContext );
-                    var connectionActivityTypeService = new ConnectionActivityTypeService( rockContext );
-                    var connectionRequestActivityService = new ConnectionRequestActivityService( rockContext );
 
                     var connectionRequest = connectionRequestService.Get( hfConnectionRequestId.ValueAsInt() );
                     if ( connectionRequest != null )
                     {
-                        var guid = Rock.SystemGuid.ConnectionActivityType.TRANSFERRED.AsGuid();
-                        var transferredActivityId = connectionActivityTypeService.Queryable()
-                            .Where( t => t.Guid == guid )
-                            .Select( t => t.Id )
-                            .FirstOrDefault();
 
-                        if ( transferredActivityId > 0 )
+                        WorkflowType workflowType = null;
+                        Guid? workflowTypeGuid = GetAttributeValue( "ReassignWorkflowType" ).AsGuidOrNull();
+                        if ( workflowTypeGuid.HasValue )
                         {
-                            ConnectionRequestActivity connectionRequestActivity = new ConnectionRequestActivity();
-                            connectionRequestActivity.ConnectionRequestId = connectionRequest.Id;
-                            connectionRequestActivity.ConnectionOpportunityId = connectionRequest.ConnectionOpportunityId;
-                            connectionRequestActivity.ConnectionActivityTypeId = transferredActivityId;
-                            connectionRequestActivity.ConnectorPersonAliasId = connectionRequest.ConnectorPersonAliasId;
-                            connectionRequestActivityService.Add( connectionRequestActivity );
-
-                            connectionRequest.AssignedGroupId = null;
-
-                            connectionRequest.ConnectorPersonAliasId = ppReassign.PersonAliasId;
-
-                            rockContext.SaveChanges();
-
-                            WorkflowType workflowType = null;
-                            Guid? workflowTypeGuid = GetAttributeValue( "ReassignWorkflowType" ).AsGuidOrNull();
-                            if ( workflowTypeGuid.HasValue )
+                            var workflowTypeService = new WorkflowTypeService( rockContext );
+                            workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
+                            if ( workflowType != null )
                             {
-                                var workflowTypeService = new WorkflowTypeService( rockContext );
-                                workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
-                                if ( workflowType != null )
+                                try
                                 {
-                                    try
-                                    {
 
-                                        List<string> workflowErrors;
-                                        var workflow = Workflow.Activate( workflowType, connectionRequest.PersonAlias.Person.FullName );
-                                        if ( workflow.AttributeValues != null )
+                                    List<string> workflowErrors;
+                                    var workflow = Workflow.Activate( workflowType, connectionRequest.PersonAlias.Person.FullName );
+                                    if ( workflow.AttributeValues != null )
+                                    {
+                                        if ( workflow.AttributeValues.ContainsKey( GetAttributeValue( "ReassignAttributeKey" ) ) )
                                         {
-                                            if ( workflow.AttributeValues.ContainsKey( GetAttributeValue( "ReassignAttributeKey" ) ) )
+                                            var personAlias = new PersonAliasService( rockContext ).Get( ppReassign.PersonAliasId.Value );
+                                            if ( personAlias != null )
                                             {
-                                                var personAlias = new PersonAliasService( rockContext ).Get( ppReassign.PersonAliasId.Value );
-                                                if ( personAlias != null )
-                                                {
-                                                    workflow.AttributeValues[GetAttributeValue( "ReassignAttributeKey" )].Value = personAlias.Guid.ToString();
-                                                }
+                                                workflow.AttributeValues[GetAttributeValue( "ReassignAttributeKey" )].Value = personAlias.Guid.ToString();
                                             }
                                         }
-                                        new WorkflowService( rockContext ).Process( workflow, connectionRequest, out workflowErrors );
                                     }
-                                    catch ( Exception ex )
-                                    {
-                                        ExceptionLogService.LogException( ex, this.Context );
-                                    }
+                                    new WorkflowService( rockContext ).Process( workflow, connectionRequest, out workflowErrors );
+                                }
+                                catch ( Exception ex )
+                                {
+                                    ExceptionLogService.LogException( ex, this.Context );
                                 }
                             }
 
@@ -496,63 +473,42 @@ namespace RockWeb.Plugins.KingsChurch
                 using ( var rockContext = new RockContext() )
                 {
                     var connectionRequestService = new ConnectionRequestService( rockContext );
-                    var connectionActivityTypeService = new ConnectionActivityTypeService( rockContext );
-                    var connectionRequestActivityService = new ConnectionRequestActivityService( rockContext );
+
 
                     var connectionRequest = connectionRequestService.Get( hfConnectionRequestId.ValueAsInt() );
                     if ( connectionRequest != null )
                     {
-                        var guid = Rock.SystemGuid.ConnectionActivityType.TRANSFERRED.AsGuid();
-                        var transferredActivityId = connectionActivityTypeService.Queryable()
-                            .Where( t => t.Guid == guid )
-                            .Select( t => t.Id )
-                            .FirstOrDefault();
 
-                        if ( transferredActivityId > 0 )
+
+                        WorkflowType workflowType = null;
+                        Guid? workflowTypeGuid = GetAttributeValue( "TransferWorkflowType" ).AsGuidOrNull();
+                        if ( workflowTypeGuid.HasValue )
                         {
-                            ConnectionRequestActivity connectionRequestActivity = new ConnectionRequestActivity();
-                            connectionRequestActivity.ConnectionRequestId = connectionRequest.Id;
-                            connectionRequestActivity.ConnectionOpportunityId = connectionRequest.ConnectionOpportunityId;
-                            connectionRequestActivity.ConnectionActivityTypeId = transferredActivityId;
-                            connectionRequestActivity.ConnectorPersonAliasId = connectionRequest.ConnectorPersonAliasId;
-                            connectionRequestActivityService.Add( connectionRequestActivity );
-
-                            connectionRequest.AssignedGroupId = null;
-
-                            connectionRequest.ConnectorPersonAliasId = ppTransfer.PersonAliasId;
-
-                            rockContext.SaveChanges();
-
-                            WorkflowType workflowType = null;
-                            Guid? workflowTypeGuid = GetAttributeValue( "TransferWorkflowType" ).AsGuidOrNull();
-                            if ( workflowTypeGuid.HasValue )
+                            var workflowTypeService = new WorkflowTypeService( rockContext );
+                            workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
+                            if ( workflowType != null )
                             {
-                                var workflowTypeService = new WorkflowTypeService( rockContext );
-                                workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
-                                if ( workflowType != null )
+                                try
                                 {
-                                    try
-                                    {
 
-                                        List<string> workflowErrors;
-                                        var workflow = Workflow.Activate( workflowType, connectionRequest.PersonAlias.Person.FullName );
-                                        if ( workflow.AttributeValues != null )
+                                    List<string> workflowErrors;
+                                    var workflow = Workflow.Activate( workflowType, connectionRequest.PersonAlias.Person.FullName );
+                                    if ( workflow.AttributeValues != null )
+                                    {
+                                        if ( workflow.AttributeValues.ContainsKey( GetAttributeValue( "TransferAttributeKey" ) ) )
                                         {
-                                            if ( workflow.AttributeValues.ContainsKey( GetAttributeValue( "TransferAttributeKey" ) ) )
+                                            var personAlias = new PersonAliasService( rockContext ).Get( ppTransfer.PersonAliasId.Value );
+                                            if ( personAlias != null )
                                             {
-                                                var personAlias = new PersonAliasService( rockContext ).Get( ppTransfer.PersonAliasId.Value );
-                                                if ( personAlias != null )
-                                                {
-                                                    workflow.AttributeValues[GetAttributeValue( "TransferAttributeKey" )].Value = personAlias.Guid.ToString();
-                                                }
+                                                workflow.AttributeValues[GetAttributeValue( "TransferAttributeKey" )].Value = personAlias.Guid.ToString();
                                             }
                                         }
-                                        new WorkflowService( rockContext ).Process( workflow, connectionRequest, out workflowErrors );
                                     }
-                                    catch ( Exception ex )
-                                    {
-                                        ExceptionLogService.LogException( ex, this.Context );
-                                    }
+                                    new WorkflowService( rockContext ).Process( workflow, connectionRequest, out workflowErrors );
+                                }
+                                catch ( Exception ex )
+                                {
+                                    ExceptionLogService.LogException( ex, this.Context );
                                 }
                             }
 
