@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
-using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Humanizer;
 using Newtonsoft.Json;
-
+using org.kcionline.bricksandmortarstudio.Utils;
 using Rock;
 using Rock.Attribute;
 using Rock.Constants;
@@ -20,8 +17,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Attribute = Rock.Model.Attribute;
-
-using org.kcionline.bricksandmortarstudio.Utils;
+using Page = Rock.Model.Page;
 
 namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
 {
@@ -30,6 +26,8 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
     [Description( "Displays the details of the given group." )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The style of maps to use", false, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK, "", 0 )]
     [BooleanField( "Show Time Field", "Whether or not to show the time field", false, order: 1 )]
+    [LinkedPage("Redirect Page", "The page to redirect to after adding")]
+    [IntegerField("Seconds Before Redirect", "The number of seconds before redirecting after showing confirmation", true, 5)]
 
     public partial class AddLineGroup : RockBlock, IDetailBlock
     {
@@ -190,6 +188,7 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
             if ( !Page.IsPostBack )
             {
                 var parentGroupId = PageParameter( "ParentGroupId" ).AsIntegerOrNull();
+                hfParentGroupId.Value = parentGroupId.ToString();
                 if ( parentGroupId != null )
                 {
                     ShowDetail( parentGroupId.Value );
@@ -297,9 +296,18 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
             var roleGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() );
             int roleGroupTypeId = roleGroupType != null ? roleGroupType.Id : int.MinValue;
 
-            int? parentGroupId = PageParameter( "ParentGroupId" ).AsIntegerOrNull();
+            int? parentGroupId = hfParentGroupId.Value.AsIntegerOrNull();
             if ( parentGroupId != null )
             {
+                var allowedGroupIds = LineQuery.GetCellGroupIdsInLine( CurrentPerson, rockContext );
+                if (!allowedGroupIds.Contains(parentGroupId.Value))
+                {
+                    nbMessage.Text = "You are not allowed to add a group to this parent group.";
+                    nbMessage.Visible = true;
+                    pnlEditDetails.Visible = false;
+                    btnSave.Enabled = false;
+                    return;
+                }
                 var parentGroup = groupService.Get( parentGroupId.Value );
                 if ( parentGroup != null )
                 {
@@ -312,6 +320,13 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
                         return;
                     }
 
+                    if ( !GroupLocationsState.Any() )
+                    {
+                        nbMessage.Text = "A location is required.";
+                        nbMessage.Visible = true;
+                        return;
+                    }
+
                     if ( CurrentGroupTypeId == 0 )
                     {
                         return;
@@ -320,6 +335,8 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
                     Group group = new Group();
                     group.IsSystem = false;
                     group.Name = string.Empty;
+
+                    
 
                     // add/update any group locations that were added or changed in the UI (we already removed the ones that were removed above)
                     foreach ( var groupLocationState in GroupLocationsState )
@@ -488,34 +505,21 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
 
                     bool isNowSecurityRole = group.IsActive && ( group.GroupTypeId == roleGroupTypeId );
 
-                    if ( group != null && wasSecurityRole )
+
+                    if ( isNowSecurityRole )
                     {
-                        if ( !isNowSecurityRole )
-                        {
-                            // if this group was a SecurityRole, but no longer is, flush
-                            Rock.Security.Role.Flush( group.Id );
-                            Rock.Security.Authorization.Flush();
-                        }
-                    }
-                    else
-                    {
-                        if ( isNowSecurityRole )
-                        {
-                            // new security role, flush
-                            Rock.Security.Authorization.Flush();
-                        }
+                        // new security role, flush
+                        Rock.Security.Authorization.Flush();
                     }
 
                     AttributeCache.FlushEntityAttributes();
 
-                    if ( triggersUpdated )
-                    {
-                        GroupMemberWorkflowTriggerService.FlushCachedTriggers();
-                    }
-
                     pnlDetails.Visible = false;
                     pnlSuccess.Visible = true;
-                    nbSuccess.Text = string.Format( "{0} has been added", group.Name );
+                    nbSuccess.Text = string.Format( "Your group ({0}) has been created", group.Name );
+                    string linkedPage = LinkedPageRoute("RedirectPage");
+                    int secondsBeforeRedirect = GetAttributeValue("SecondsBeforeRedirect").AsInteger() * 1000;
+                    ScriptManager.RegisterClientScriptBlock( upnlGroupDetail, typeof( UpdatePanel ), "Redirect", string.Format("console.log('{0}'); setTimeout(function() {{ window.location.replace('{0}?GroupId={2}') }}, {1});", linkedPage, secondsBeforeRedirect,group.Id), true );
                 }
             }
         }
@@ -608,15 +612,6 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
         public void ShowDetail( int parentGroupId )
         {
             RockContext rockContext = new RockContext();
-            //var allowedGroupIds = LineQuery.GetCellGroupIdsInLine( CurrentPerson, rockContext );
-            //if ( !allowedGroupIds.Contains( parentGroupId ) )
-            //{
-            //    nbMessage.Text = "You are not allowed to add a group to this parent group.";
-            //    nbMessage.Visible = true;
-            //    pnlEditDetails.Visible = false;
-            //}
-            //else
-            //{
             Group group = new Group { Id = 0, IsActive = true, IsPublic = true, ParentGroupId = parentGroupId, Name = string.Empty };
             GroupLocationsState = group.GroupLocations.ToList();
 

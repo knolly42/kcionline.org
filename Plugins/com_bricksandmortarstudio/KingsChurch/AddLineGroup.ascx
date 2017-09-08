@@ -11,6 +11,8 @@
     });
 </script>
 
+<asp:HiddenField runat="server" ID="hfParentGroupId"></asp:HiddenField>
+
 <asp:UpdatePanel ID="upnlGroupDetail" runat="server">
     <ContentTemplate>
 
