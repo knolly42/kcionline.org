@@ -123,7 +123,7 @@
                     </div>
 
                     <div class="actions">
-                        <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Connect" CssClass="btn btn-success" OnClick="btnSave_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Place" CssClass="btn btn-success" OnClick="btnSave_Click"></asp:LinkButton>
                         <asp:LinkButton ID="btnCancel" runat="server" AccessKey="c" Text="Cancel" CssClass="btn btn-link" OnClick="btnCancel_Click" CausesValidation="false"></asp:LinkButton>
                     </div>
 
