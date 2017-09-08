@@ -227,6 +227,12 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             return connectionRequests;
         }
 
+        /// <summary>
+        /// Determines whether a given group is overseen by this person either as a leader or as a coordinator
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="currentPerson"></param>
+        /// <returns></returns>
         public static bool IsGroupInPersonsLine( Group group, Person currentPerson )
         {
             return GetCellGroupsInLine( currentPerson, new RockContext(), false ).ToList().Any( g => g.Id == group.Id );
