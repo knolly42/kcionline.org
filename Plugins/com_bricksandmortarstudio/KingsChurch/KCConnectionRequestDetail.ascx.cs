@@ -317,6 +317,7 @@ namespace RockWeb.Plugins.KingsChurch
                         connectionRequest.ConnectionState = ConnectionState.Connected;
 
                         rockContext.SaveChanges();
+                        pnlEditDetails.Visible = false;
                         ShowDetail( connectionRequest.Id, connectionRequest.ConnectionOpportunityId );
                     }
                 }
