@@ -116,13 +116,13 @@
                 </div>
 
             </asp:Panel>
-            
+
             <asp:Panel ID="pnlReassignDetails" runat="server" Visible="false">
 
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-6">
-                           <KingsChurch:LinePersonPicker ID="ppReassign" runat="server" />
+                            <KingsChurch:LinePersonPicker ID="ppReassign" runat="server" />
                         </div>
                     </div>
                     </br>
@@ -132,14 +132,14 @@
                     </div>
 
                 </div>
-        </asp:Panel>
+            </asp:Panel>
 
             <asp:Panel ID="pnlTransferDetails" runat="server" Visible="false">
 
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-6">
-                           <KingsChurch:ConsolidatorLeaderPicker ID="ppTransfer" runat="server" />
+                            <KingsChurch:ConsolidatorLeaderPicker ID="ppTransfer" runat="server" />
                         </div>
                     </div>
                     </br>
@@ -149,7 +149,7 @@
                     </div>
 
                 </div>
-        </asp:Panel>
+            </asp:Panel>
 
         </div>
 

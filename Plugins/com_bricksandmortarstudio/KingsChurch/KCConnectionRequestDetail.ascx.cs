@@ -846,7 +846,6 @@ namespace RockWeb.Plugins.KingsChurch
             using ( var rockContext = new RockContext() )
             {
                 var connectionOpportunityService = new ConnectionOpportunityService( rockContext );
-                var connectionRequestService = new ConnectionRequestService( rockContext );
                 var connectionStatusService = new ConnectionStatusService( rockContext );
 
                 ConnectionOpportunity connectionOpportunity = null;
@@ -950,7 +949,7 @@ namespace RockWeb.Plugins.KingsChurch
                         }
                     }
 
-                    lbEdit.Visible = editAllowed;
+                    lbEdit.Visible = connectionRequest.AssignedGroupId == null;
                     lbReassign.Visible = editAllowed;
                     lbTransfer.Visible = editAllowed;
                     var isCoordinator = GetAttributeValue( "CoordinatorView" ).AsBooleanOrNull() ?? true;
