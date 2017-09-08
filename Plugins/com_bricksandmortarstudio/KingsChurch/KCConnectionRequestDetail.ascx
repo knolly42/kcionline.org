@@ -153,7 +153,7 @@
 
         </div>
 
-        <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="History" Expanded="true" CssClass="clickable">
+        <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="History" Expanded="false" CssClass="clickable">
             <div class="grid">
                 <Rock:Grid ID="gConnectionRequestActivities" runat="server" AllowPaging="false" DisplayType="Light"
                     RowItemText="Activity" OnRowSelected="gConnectionRequestActivities_Edit">
