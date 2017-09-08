@@ -132,7 +132,6 @@ namespace RockWeb.Plugins.KingsChurch
             base.OnLoad( e );
 
             nbErrorMessage.Visible = false;
-            nbRequirementsErrors.Visible = false;
 
             string badgeList = GetAttributeValue( "Badges" );
             if ( !string.IsNullOrWhiteSpace( badgeList ) )
@@ -264,64 +263,75 @@ namespace RockWeb.Plugins.KingsChurch
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            if ( Page.IsValid )
+            if (Page.IsValid && gpGroup.SelectedValue.AsIntegerOrNull() != null)
             {
-                using ( var rockContext = new RockContext() )
+                using (var rockContext = new RockContext())
                 {
-                    var connectionRequestService = new ConnectionRequestService( rockContext );
-                    var groupMemberService = new GroupMemberService( rockContext );
-                    var connectionActivityTypeService = new ConnectionActivityTypeService( rockContext );
-                    var connectionRequestActivityService = new ConnectionRequestActivityService( rockContext );
-                    var connectionRequest = connectionRequestService.Get( hfConnectionRequestId.ValueAsInt() );
+                    var connectionRequestService = new ConnectionRequestService(rockContext);
+                    var groupMemberService = new GroupMemberService(rockContext);
+                    var connectionActivityTypeService = new ConnectionActivityTypeService(rockContext);
+                    var connectionRequestActivityService = new ConnectionRequestActivityService(rockContext);
+                    var connectionRequest = connectionRequestService.Get(hfConnectionRequestId.ValueAsInt());
 
-                    if ( connectionRequest != null &&
+                    if (connectionRequest != null &&
                         connectionRequest.PersonAlias != null &&
-                        connectionRequest.ConnectionOpportunity != null )
+                        connectionRequest.ConnectionOpportunity != null)
                     {
                         connectionRequest.AssignedGroupId = gpGroup.SelectedValueAsId();
 
                         // Only do group member placement if the request has an assigned placement group
-                        if ( connectionRequest.ConnectionOpportunity.GroupMemberRoleId.HasValue &&
-                            connectionRequest.AssignedGroupId.HasValue )
+                        if (connectionRequest.ConnectionOpportunity.GroupMemberRoleId.HasValue &&
+                            connectionRequest.AssignedGroupId.HasValue)
                         {
                             // Only attempt the add if person does not already exist in group with same role
-                            var groupMember = groupMemberService.GetByGroupIdAndPersonIdAndGroupRoleId( connectionRequest.AssignedGroupId.Value,
-                                connectionRequest.PersonAlias.PersonId, connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value );
-                            if ( groupMember == null )
+                            var groupMember =
+                                groupMemberService.GetByGroupIdAndPersonIdAndGroupRoleId(
+                                    connectionRequest.AssignedGroupId.Value,
+                                    connectionRequest.PersonAlias.PersonId,
+                                    connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value);
+                            if (groupMember == null)
                             {
                                 groupMember = new GroupMember();
                                 groupMember.PersonId = connectionRequest.PersonAlias.PersonId;
-                                groupMember.GroupRoleId = connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value;
-                                groupMember.GroupMemberStatus = connectionRequest.ConnectionOpportunity.GroupMemberStatus;
+                                groupMember.GroupRoleId =
+                                    connectionRequest.ConnectionOpportunity.GroupMemberRoleId.Value;
+                                groupMember.GroupMemberStatus =
+                                    connectionRequest.ConnectionOpportunity.GroupMemberStatus;
                                 groupMember.GroupId = connectionRequest.AssignedGroupId.Value;
-                                groupMemberService.Add( groupMember );
+                                groupMemberService.Add(groupMember);
                             }
                         }
 
                         // ... but always record the connection activity and change the state to connected.
                         var guid = Rock.SystemGuid.ConnectionActivityType.CONNECTED.AsGuid();
                         var connectedActivityId = connectionActivityTypeService.Queryable()
-                            .Where( t => t.Guid == guid )
-                            .Select( t => t.Id )
-                            .FirstOrDefault();
-                        if ( connectedActivityId > 0 )
+                                                                               .Where(t => t.Guid == guid)
+                                                                               .Select(t => t.Id)
+                                                                               .FirstOrDefault();
+                        if (connectedActivityId > 0)
                         {
                             var connectionRequestActivity = new ConnectionRequestActivity();
                             connectionRequestActivity.ConnectionRequestId = connectionRequest.Id;
-                            connectionRequestActivity.ConnectionOpportunityId = connectionRequest.ConnectionOpportunityId;
+                            connectionRequestActivity.ConnectionOpportunityId =
+                                connectionRequest.ConnectionOpportunityId;
                             connectionRequestActivity.ConnectionActivityTypeId = connectedActivityId;
                             connectionRequestActivity.ConnectorPersonAliasId = CurrentPersonAliasId;
-                            connectionRequestActivityService.Add( connectionRequestActivity );
+                            connectionRequestActivityService.Add(connectionRequestActivity);
                         }
 
                         connectionRequest.ConnectionState = ConnectionState.Connected;
 
                         rockContext.SaveChanges();
-                        pnlEditDetails.Visible = false;
-                        ShowDetail( connectionRequest.Id, connectionRequest.ConnectionOpportunityId );
+                        
                     }
                 }
             }
+            else
+            {
+                ShowErrorMessage("No Group Selected", "Please select a group before trying to place");
+            }
+            pnlEditDetails.Visible = false;
+            ShowDetail( hfConnectionRequestId.ValueAsInt(), hfConnectionOpportunityId.ValueAsInt() );
         }
 
         /// <summary>
@@ -921,18 +931,18 @@ namespace RockWeb.Plugins.KingsChurch
                         {
                             // Grant edit access to any of those in a non campus-specific connector group
                             editAllowed = connectionOpportunity.ConnectionOpportunityConnectorGroups
-                                                               .Any(g =>
-                                                                   !g.CampusId.HasValue &&
-                                                                   g.ConnectorGroup != null &&
-                                                                   g.ConnectorGroup.Members.Any(
-                                                                        m => m.PersonId == CurrentPersonId));
-                            if (!editAllowed)
+                                                               .Any( g =>
+                                                                    !g.CampusId.HasValue &&
+                                                                    g.ConnectorGroup != null &&
+                                                                    g.ConnectorGroup.Members.Any(
+                                                                         m => m.PersonId == CurrentPersonId ) );
+                            if ( !editAllowed )
                             {
                                 //If this is a new request, grant edit access to any connector group. Otherwise, match the request's campus to the corresponding campus-specific connector group
-                                if (connectionOpportunity
-                                    .ConnectionOpportunityConnectorGroups.Any(g => ( connectionRequest.Id == 0 || ( connectionRequest.CampusId.HasValue && g.CampusId == connectionRequest.CampusId.Value ) ) &&
-                                        g.ConnectorGroup != null &&
-                                        g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId )))
+                                if ( connectionOpportunity
+                                    .ConnectionOpportunityConnectorGroups.Any( g => ( connectionRequest.Id == 0 || ( connectionRequest.CampusId.HasValue && g.CampusId == connectionRequest.CampusId.Value ) ) &&
+                                         g.ConnectorGroup != null &&
+                                         g.ConnectorGroup.Members.Any( m => m.PersonId == CurrentPersonId ) ) )
                                 {
                                     editAllowed = true;
                                 }
@@ -975,15 +985,6 @@ namespace RockWeb.Plugins.KingsChurch
         /// <param name="connectionRequest">The connection request.</param>
         private void ShowReadonlyDetails( ConnectionRequest connectionRequest )
         {
-            if ( connectionRequest.AssignedGroupId != null )
-            {
-                pnlRequirements.Visible = true;
-                ShowConnectionOpportunityRequirementsStatuses();
-            }
-            else
-            {
-                pnlRequirements.Visible = false;
-            }
 
             if ( connectionRequest.ConnectionState == ConnectionState.Inactive || connectionRequest.ConnectionState == ConnectionState.Connected )
             {
@@ -1174,142 +1175,6 @@ namespace RockWeb.Plugins.KingsChurch
                 if ( ancestorIds.Contains( currentPersonsCellGroup.Id ) )
                 {
                     gpGroup.SetValue( connectionRequest.AssignedGroupId );
-                }
-            }
-        }
-
-        /// <summary>
-        /// Shows the connectionOpportunity requirements statuses.
-        /// </summary>
-        private void ShowConnectionOpportunityRequirementsStatuses()
-        {
-            using ( var rockContext = new RockContext() )
-            {
-                int connectionRequestId = hfConnectionRequestId.Value.AsInteger();
-                var connectionOpportunityId = hfConnectionOpportunityId.Value.AsInteger();
-                ConnectionRequest connectionRequest = null;
-                bool passedAllRequirements = true;
-                connectionRequest = new ConnectionRequestService( rockContext ).Get( connectionRequestId );
-
-                var groupMember = new GroupMember { Id = 0 };
-                groupMember.GroupId = gpGroup.SelectedValueAsId().Value;
-                groupMember.Group = new GroupService( rockContext ).Get( groupMember.GroupId );
-                groupMember.GroupRoleId = groupMember.Group.GroupType.DefaultGroupRoleId ?? 0;
-                groupMember.GroupMemberStatus = GroupMemberStatus.Active;
-
-                cblManualRequirements.Items.Clear();
-                lRequirementsLabels.Text = string.Empty;
-
-                IEnumerable<GroupRequirementStatus> requirementsResults;
-
-                if ( groupMember.IsNewOrChangedGroupMember( rockContext ) )
-                {
-                    requirementsResults = groupMember.Group.PersonMeetsGroupRequirements( connectionRequest.PersonAlias.PersonId, connectionRequest.ConnectionOpportunity.GroupMemberRoleId );
-                }
-                else
-                {
-                    requirementsResults = groupMember.GetGroupRequirementsStatuses().ToList();
-                }
-
-                // hide requirements section if there are none
-                if ( !requirementsResults.Where( a => a.MeetsGroupRequirement != MeetsGroupRequirement.NotApplicable ).Any() )
-                {
-                    rcwRequirements.Visible = false;
-                }
-
-                // only show the requirements that apply to the GroupRole (or all Roles)
-                foreach ( var requirementResult in requirementsResults.Where( a => a.MeetsGroupRequirement != MeetsGroupRequirement.NotApplicable ) )
-                {
-                    if ( requirementResult.GroupRequirement.GroupRequirementType.RequirementCheckType == RequirementCheckType.Manual )
-                    {
-                        var checkboxItem = new ListItem( requirementResult.GroupRequirement.GroupRequirementType.CheckboxLabel, requirementResult.GroupRequirement.Id.ToString() );
-                        if ( string.IsNullOrEmpty( checkboxItem.Text ) )
-                        {
-                            checkboxItem.Text = requirementResult.GroupRequirement.GroupRequirementType.Name;
-                        }
-
-                        checkboxItem.Selected = requirementResult.MeetsGroupRequirement == MeetsGroupRequirement.Meets;
-                        cblManualRequirements.Items.Add( checkboxItem );
-                    }
-                    else
-                    {
-                        string labelText;
-                        string labelType;
-                        string labelTooltip;
-                        if ( requirementResult.MeetsGroupRequirement == MeetsGroupRequirement.Meets )
-                        {
-                            labelText = requirementResult.GroupRequirement.GroupRequirementType.PositiveLabel;
-                            labelType = "success";
-                        }
-                        else if ( requirementResult.MeetsGroupRequirement == MeetsGroupRequirement.MeetsWithWarning )
-                        {
-                            labelText = requirementResult.GroupRequirement.GroupRequirementType.WarningLabel;
-                            labelType = "warning";
-                        }
-                        else
-                        {
-                            passedAllRequirements = false;
-                            labelText = requirementResult.GroupRequirement.GroupRequirementType.NegativeLabel;
-                            labelType = "danger";
-                        }
-
-                        if ( string.IsNullOrEmpty( labelText ) )
-                        {
-                            labelText = requirementResult.GroupRequirement.GroupRequirementType.Name;
-                        }
-
-                        if ( requirementResult.MeetsGroupRequirement == MeetsGroupRequirement.MeetsWithWarning )
-                        {
-                            labelTooltip = requirementResult.RequirementWarningDateTime.HasValue
-                                ? "Last Checked: " + requirementResult.RequirementWarningDateTime.Value.ToString( "g" )
-                                : "Not calculated yet";
-                        }
-                        else
-                        {
-                            labelTooltip = requirementResult.LastRequirementCheckDateTime.HasValue
-                                ? "Last Checked: " + requirementResult.LastRequirementCheckDateTime.Value.ToString( "g" )
-                                : "Not calculated yet";
-                        }
-
-
-                        lRequirementsLabels.Text += string.Format(
-                            @"<span class='label label-{1}' title='{2}'>{0}</span>
-                        ",
-                            labelText,
-                            labelType,
-                            labelTooltip );
-                    }
-                }
-
-                var requirementsWithErrors = requirementsResults.Where( a => a.MeetsGroupRequirement == MeetsGroupRequirement.Error ).ToList();
-                if ( requirementsWithErrors.Any() )
-                {
-                    nbRequirementsErrors.Visible = true;
-                    nbRequirementsErrors.Text = string.Format(
-                        "An error occurred in one or more of the requirement calculations: <br /> {0}",
-                        requirementsWithErrors.AsDelimited( "<br />" ) );
-                }
-                else
-                {
-                    nbRequirementsErrors.Visible = false;
-                }
-
-                if ( passedAllRequirements || ( groupMember.Group.MustMeetRequirementsToAddMember.HasValue && !groupMember.Group.MustMeetRequirementsToAddMember.Value ) )
-                {
-                    if ( passedAllRequirements )
-                    {
-                        btnSave.RemoveCssClass( "js-confirm-connect" );
-                    }
-                    else
-                    {
-                        btnSave.AddCssClass( "js-confirm-connect" );
-                    }
-
-                    btnSave.Enabled = true;
-                }
-                else
-                {
-                    btnSave.Enabled = false;
                 }
             }
         }
@@ -1537,10 +1402,10 @@ namespace RockWeb.Plugins.KingsChurch
         {
             if ( connectionRequest != null && connectionWorkflow != null && connectionWorkflow.WorkflowType != null )
             {
-                var workflow = Rock.Model.Workflow.Activate( connectionWorkflow.WorkflowType, connectionWorkflow.WorkflowType.WorkTerm, rockContext );
+                var workflow = Workflow.Activate( connectionWorkflow.WorkflowType, connectionWorkflow.WorkflowType.WorkTerm, rockContext );
                 if ( workflow != null )
                 {
-                    var workflowService = new Rock.Model.WorkflowService( rockContext );
+                    var workflowService = new WorkflowService( rockContext );
 
                     List<string> workflowErrors;
                     if ( workflowService.Process( workflow, connectionRequest, out workflowErrors ) )
@@ -1591,7 +1456,14 @@ namespace RockWeb.Plugins.KingsChurch
 
         protected void gpGroup_SelectItem( object sender, EventArgs e )
         {
-            ShowConnectionOpportunityRequirementsStatuses();
+            if (!string.IsNullOrEmpty(gpGroup.SelectedValue))
+            {
+                btnSave.Enabled = true;
+            }
+            else
+            {
+                btnSave.Enabled = false;
+            }
         }
     }
 }

@@ -108,22 +108,8 @@
                         </div>
                     </div>
 
-                    <div class="row">                        
-                        <div class="col-md-6">
-                            <asp:Panel ID="pnlRequirements" runat="server">
-                                <Rock:RockControlWrapper ID="rcwRequirements" runat="server" Label="Group Requirements">
-                                    <Rock:NotificationBox ID="nbRequirementsErrors" runat="server" Dismissable="true" NotificationBoxType="Warning" />
-                                    <Rock:RockCheckBoxList ID="cblManualRequirements" RepeatDirection="Vertical" runat="server" Label="" />
-                                    <div class="labels">
-                                        <asp:Literal ID="lRequirementsLabels" runat="server" />
-                                    </div>
-                                </Rock:RockControlWrapper>
-                            </asp:Panel>
-                        </div>
-                    </div>
-
                     <div class="actions">
-                        <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Place" CssClass="btn btn-success" OnClick="btnSave_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="btnSave" Enabled="False" runat="server" AccessKey="s" Text="Place" CssClass="btn btn-success" OnClick="btnSave_Click"></asp:LinkButton>
                         <asp:LinkButton ID="btnCancel" runat="server" AccessKey="c" Text="Cancel" CssClass="btn btn-link" OnClick="btnCancel_Click" CausesValidation="false"></asp:LinkButton>
                     </div>
 
