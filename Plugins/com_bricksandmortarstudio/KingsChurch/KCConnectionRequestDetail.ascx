@@ -76,9 +76,9 @@
                     </asp:Panel>
 
                     <div class="actions">
-                        <asp:LinkButton ID="lbEdit" runat="server" Text="Edit" CssClass="btn btn-primary" OnClick="lbEdit_Click"></asp:LinkButton>
-                        <asp:LinkButton ID="lbReassign" runat="server" Text="Reassign" CssClass="btn btn-link" CausesValidation="false" OnClick="lbReassign_Click"></asp:LinkButton>
-                        <asp:LinkButton ID="lbTransfer" runat="server" Text="Transfer" CssClass="btn btn-link" CausesValidation="false" OnClick="lbTransfer_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="lbEdit" runat="server" Text="Place in Group" CssClass="btn btn-primary" OnClick="lbEdit_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="lbReassign" runat="server" Text="Change Consolidator" CssClass="btn btn-link" CausesValidation="false" OnClick="lbReassign_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="lbTransfer" runat="server" Text="Transfer to Another Coordinator" CssClass="btn btn-link" CausesValidation="false" OnClick="lbTransfer_Click"></asp:LinkButton>
                     </div>
 
                 </div>
@@ -167,7 +167,7 @@
 
         </div>
 
-        <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="Activities" Expanded="true" CssClass="clickable">
+        <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="History" Expanded="true" CssClass="clickable">
             <div class="grid">
                 <Rock:Grid ID="gConnectionRequestActivities" runat="server" AllowPaging="false" DisplayType="Light"
                     RowItemText="Activity" OnRowSelected="gConnectionRequestActivities_Edit">
