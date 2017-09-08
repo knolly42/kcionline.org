@@ -60,17 +60,15 @@
                                                 <Rock:TimePicker ID="timeWeekly" runat="server" Visible="false" Label="Time of Day" />
                                             </div>
                                         </div>
-                                        <Rock:SchedulePicker ID="spSchedule" runat="server" AllowMultiSelect="false" Visible="false" Label="Named Schedule" />
+                                        <Rock:SchedulePicker ID="spSchedule" runat="server" AllowMultiSelect="false" Visible="false" Label="Named Schedule" Required="True" RequiredErrorMessage="A schedule is required" />
                                         <asp:HiddenField ID="hfUniqueScheduleId" runat="server" />
                                         <Rock:ScheduleBuilder ID="sbSchedule" runat="server" ShowDuration="false" ShowScheduleFriendlyTextAsToolTip="true" Visible="false" Label="Custom Schedule" />
                                     </div>
                                 </div>
-                                <Rock:DatePicker ID="dpStartDate" runat="server" Label="Start Date" />
+                                <Rock:DatePicker ID="dpStartDate" runat="server" Label="Start Date"  Required="True" RequiredErrorMessage="A start date is required"/>
                                 <Rock:DataTextBox ID="tbDescription" runat="server" SourceTypeName="Rock.Model.Group, Rock" PropertyName="Description" TextMode="MultiLine" Rows="4" />
 
-                                <Rock:PanelWidget ID="wpGroupAttributes" runat="server" Title="Group Attribute Values">
-                                    <asp:PlaceHolder ID="phGroupAttributes" runat="server" EnableViewState="false"></asp:PlaceHolder>
-                                </Rock:PanelWidget>
+                                 <asp:PlaceHolder ID="phGroupAttributes" runat="server" EnableViewState="false"></asp:PlaceHolder>
                             </div>
                         </div>
 

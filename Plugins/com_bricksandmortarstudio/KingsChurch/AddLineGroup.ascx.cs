@@ -293,7 +293,6 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
 
             GroupService groupService = new GroupService( rockContext );
             ScheduleService scheduleService = new ScheduleService( rockContext );
-            AttributeService attributeService = new AttributeService( rockContext );
 
             var roleGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() );
             int roleGroupTypeId = roleGroupType != null ? roleGroupType.Id : int.MinValue;
@@ -670,12 +669,7 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
 
                 if ( group.Attributes != null && group.Attributes.Any() )
                 {
-                    wpGroupAttributes.Visible = true;
                     Rock.Attribute.Helper.AddEditControls( group, phGroupAttributes, setValues, BlockValidationGroup );
-                }
-                else
-                {
-                    wpGroupAttributes.Visible = false;
                 }
             }
         }
