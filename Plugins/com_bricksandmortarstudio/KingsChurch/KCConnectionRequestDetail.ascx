@@ -51,12 +51,6 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-12">
-                            <Rock:RockLiteral ID="lComments" runat="server" />
-                        </div>
-                    </div>
-
                     <asp:Panel ID="pnlWorkflows" runat="server">
                         <div class="row">
                             <div class="col-md-6">
@@ -153,7 +147,7 @@
 
         </div>
 
-        <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="History" Expanded="false" CssClass="clickable">
+        <Rock:PanelWidget ID="wpConnectionRequestActivities" runat="server" Title="History" Expanded="False" CssClass="clickable">
             <div class="grid">
                 <Rock:Grid ID="gConnectionRequestActivities" runat="server" AllowPaging="false" DisplayType="Light"
                     RowItemText="Activity" OnRowSelected="gConnectionRequestActivities_Edit">

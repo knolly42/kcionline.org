@@ -31,6 +31,7 @@ namespace RockWeb.Plugins.KingsChurch
     [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7 )]
     [BooleanField( "Show Workflow Buttons", "Whether to show workflow buttons or not", false, order: 8 )]
     [BooleanField( "Coordinator View", "Is the block for coordinators? (Otherwise will allow admin functionality)", true, order: 9 )]
+    [PersonBadgesField("Badges", "The person badges to display in this block", false, order:6)]
 
     public partial class KCConnectionRequestDetail : RockBlock, IDetailBlock
     {
@@ -1049,8 +1050,7 @@ namespace RockWeb.Plugins.KingsChurch
                 lPortrait.Text = string.Empty;
                 ;
             }
-
-            lComments.Text = connectionRequest != null && connectionRequest.Comments != null ? connectionRequest.Comments.ScrubHtmlAndConvertCrLfToBr() : string.Empty;
+            
             lRequestDate.Text = connectionRequest != null && connectionRequest.CreatedDateTime.HasValue ? connectionRequest.CreatedDateTime.Value.ToShortDateString() : string.Empty;
             if ( connectionRequest != null && connectionRequest.AssignedGroup != null )
             {
