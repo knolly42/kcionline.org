@@ -20,6 +20,7 @@
                     <Rock:HighlightLabel ID="hlOpportunity" runat="server" LabelType="Info" />
                     <Rock:HighlightLabel ID="hlStatus" runat="server" LabelType="Default" Visible="false" />
                     <Rock:HighlightLabel ID="hlState" runat="server" Visible="false" />
+                    <Rock:HighlightLabel ID="hl" runat="server"/>
                 </div>
             </div>
 
@@ -35,7 +36,8 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:RockLiteral ID="lContactInfo" runat="server" Label="Contact Info" />
-                                    <Rock:RockLiteral ID="lConnector" runat="server" Label="Connector" />
+                                    <Rock:RockLiteral ID="lConnector" runat="server" Label="Coordinator" />
+                                    <Rock:RockLiteral ID="lConsolidator" runat="server" Label="Consolidator"></Rock:RockLiteral>
                                 </div>
                                 <div class="col-md-4">
                                     <Rock:RockLiteral ID="lRequestDate" runat="server" Label="Request Date" />

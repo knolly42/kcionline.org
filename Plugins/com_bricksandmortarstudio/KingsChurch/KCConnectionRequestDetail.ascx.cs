@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using dotless.Core.Utils;
+using Microsoft.Ajax.Utilities;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
@@ -14,6 +16,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Rock.Attribute;
+using ListItem = System.Web.UI.WebControls.ListItem;
 
 namespace RockWeb.Plugins.KingsChurch
 {
@@ -31,7 +34,8 @@ namespace RockWeb.Plugins.KingsChurch
     [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7 )]
     [BooleanField( "Show Workflow Buttons", "Whether to show workflow buttons or not", false, order: 8 )]
     [BooleanField( "Coordinator View", "Is the block for coordinators? (Otherwise will allow admin functionality)", true, order: 9 )]
-    [PersonBadgesField("Badges", "The person badges to display in this block", false, order:6)]
+    [PersonBadgesField("Badges", "The person badges to display in this block", false, order:6, key:"Badges")]
+    [LinkedPage("Consolidation Tracker Page", "The page to return to view more followups", false, order:10)]
 
     public partial class KCConnectionRequestDetail : RockBlock, IDetailBlock
     {
@@ -101,27 +105,8 @@ namespace RockWeb.Plugins.KingsChurch
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.AddConfigurationUpdateTrigger( upDetail );
 
-            string badgeList = GetAttributeValue( "Badges" );
-            if ( !string.IsNullOrWhiteSpace( badgeList ) )
-            {
-                pnlBadges.Visible = true;
-                foreach ( string badgeGuid in badgeList.SplitDelimitedValues() )
-                {
-                    Guid guid = badgeGuid.AsGuid();
-                    if ( guid != Guid.Empty )
-                    {
-                        var personBadge = PersonBadgeCache.Read( guid );
-                        if ( personBadge != null )
-                        {
-                            blStatus.PersonBadges.Add( personBadge );
-                        }
-                    }
-                }
-            }
-            else
-            {
-                pnlBadges.Visible = false;
-            }
+
+            CreateBadges();
         }
 
         /// <summary>
@@ -134,6 +119,15 @@ namespace RockWeb.Plugins.KingsChurch
 
             nbErrorMessage.Visible = false;
 
+            if ( !Page.IsPostBack )
+            {
+                ShowDetail( PageParameter( "ConnectionRequestId" ).AsInteger(), PageParameter( "ConnectionOpportunityId" ).AsIntegerOrNull() );
+            }
+        }
+
+        private void CreateBadges()
+        {
+
             string badgeList = GetAttributeValue( "Badges" );
             if ( !string.IsNullOrWhiteSpace( badgeList ) )
             {
@@ -156,10 +150,7 @@ namespace RockWeb.Plugins.KingsChurch
                 pnlBadges.Visible = false;
             }
 
-            if ( !Page.IsPostBack )
-            {
-                ShowDetail( PageParameter( "ConnectionRequestId" ).AsInteger(), PageParameter( "ConnectionOpportunityId" ).AsIntegerOrNull() );
-            }
+            blStatus.Visible = true;
         }
 
         /// <summary>
@@ -323,16 +314,27 @@ namespace RockWeb.Plugins.KingsChurch
                         connectionRequest.ConnectionState = ConnectionState.Connected;
 
                         rockContext.SaveChanges();
-                        
+
+                        if (!GetAttributeValue("ConsolidationTrackerPage").IsNullOrWhiteSpace())
+                        {
+                            var queryParms = new Dictionary<string, string> {{"success", "true"}, {"type", "place"}};
+                            NavigateToLinkedPage("ConsolidationTrackerPage", queryParms);
+                        }
+                        else
+                        {
+                            pnlEditDetails.Visible = false;
+                            ShowDetail( hfConnectionRequestId.ValueAsInt(), hfConnectionOpportunityId.ValueAsInt() );
+                        }
                     }
                 }
             }
             else
             {
                 ShowErrorMessage("No Group Selected", "Please select a group before trying to place");
+                pnlEditDetails.Visible = false;
+                ShowDetail( hfConnectionRequestId.ValueAsInt(), hfConnectionOpportunityId.ValueAsInt() );
             }
-            pnlEditDetails.Visible = false;
-            ShowDetail( hfConnectionRequestId.ValueAsInt(), hfConnectionOpportunityId.ValueAsInt() );
+            
         }
 
         /// <summary>
@@ -527,8 +529,17 @@ namespace RockWeb.Plugins.KingsChurch
                             wpConnectionRequestActivities.Visible = true;
                             pnlReassignDetails.Visible = false;
                             pnlTransferDetails.Visible = false;
-
-                            ShowDetail( connectionRequest.Id, connectionRequest.ConnectionOpportunityId );
+                            if (!GetAttributeValue("ConsolidationTrackerPage").IsNullOrWhiteSpace())
+                            {
+                                var queryParms = new Dictionary<string, string>();
+                                queryParms.Add("success", "true");
+                                queryParms.Add("type", "transfer");
+                                NavigateToLinkedPage("ConsolidationTrackerPage", queryParms);
+                            }
+                            else
+                            {
+                                ShowDetail(connectionRequest.Id, connectionRequest.ConnectionOpportunityId);
+                            }
                         }
                     }
                 }
@@ -1068,8 +1079,7 @@ namespace RockWeb.Plugins.KingsChurch
                 lPlacementGroup.Text = "No group assigned";
             }
 
-            if ( connectionRequest != null &&
-                connectionRequest.ConnectorPersonAlias != null &&
+            if ( connectionRequest.ConnectorPersonAlias != null &&
                 connectionRequest.ConnectorPersonAlias.Person != null )
             {
                 lConnector.Text = connectionRequest.ConnectorPersonAlias.Person.FullName;
@@ -1079,54 +1089,65 @@ namespace RockWeb.Plugins.KingsChurch
                 lConnector.Text = "No connector assigned";
             }
 
-            if ( connectionRequest != null )
-            {
-                hlState.Visible = true;
-                hlState.Text = connectionRequest.ConnectionState.ConvertToString();
-                hlState.LabelType = connectionRequest.ConnectionState == ConnectionState.Inactive ? LabelType.Danger :
+            SetConsolidatorText(connectionRequest);
+
+            hlState.Visible = true;
+            hlState.Text = connectionRequest.ConnectionState.ConvertToString();
+            hlState.LabelType = connectionRequest.ConnectionState == ConnectionState.Inactive ? LabelType.Danger :
                 ( connectionRequest.ConnectionState == ConnectionState.FutureFollowUp ? LabelType.Info : LabelType.Success );
 
-                hlStatus.Visible = true;
-                hlStatus.Text = connectionRequest.ConnectionStatus.Name;
-                hlStatus.LabelType = connectionRequest.ConnectionStatus.IsCritical ? LabelType.Warning : LabelType.Type;
+            hlStatus.Visible = true;
+            hlStatus.Text = connectionRequest.ConnectionStatus.Name;
+            hlStatus.LabelType = connectionRequest.ConnectionStatus.IsCritical ? LabelType.Warning : LabelType.Type;
 
-                hlOpportunity.Text = connectionRequest.ConnectionOpportunity != null ? connectionRequest.ConnectionOpportunity.Name : string.Empty;
-                hlCampus.Text = connectionRequest.Campus != null ? connectionRequest.Campus.Name : string.Empty;
+            hlOpportunity.Text = connectionRequest.ConnectionOpportunity != null ? connectionRequest.ConnectionOpportunity.Name : string.Empty;
+            hlCampus.Text = connectionRequest.Campus != null ? connectionRequest.Campus.Name : string.Empty;
 
-                pnlWorkflows.Visible = GetAttributeValue( "ShowWorkflowButtons" ).AsBoolean();
+            pnlWorkflows.Visible = GetAttributeValue( "ShowWorkflowButtons" ).AsBoolean();
 
-                if ( connectionRequest.ConnectionOpportunity != null )
-                {
-                    var connectionWorkflows = connectionRequest.ConnectionOpportunity.ConnectionWorkflows.Union( connectionRequest.ConnectionOpportunity.ConnectionType.ConnectionWorkflows );
-                    var manualWorkflows = connectionWorkflows
-                        .Where( w =>
-                            w.TriggerType == ConnectionWorkflowTriggerType.Manual &&
-                            w.WorkflowType != null )
-                        .OrderBy( w => w.WorkflowType.Name )
-                        .Distinct();
-
-                    if ( manualWorkflows.Any() )
-                    {
-                        lblWorkflows.Visible = true;
-                        rptRequestWorkflows.DataSource = manualWorkflows.ToList();
-                        rptRequestWorkflows.DataBind();
-                    }
-                    else
-                    {
-                        lblWorkflows.Visible = false;
-                    }
-                }
-
-                BindConnectionRequestActivitiesGrid( connectionRequest, new RockContext() );
-            }
-            else
+            if ( connectionRequest.ConnectionOpportunity != null )
             {
-                hlState.Visible = false;
-                hlStatus.Visible = false;
-                hlOpportunity.Visible = false;
-                hlCampus.Visible = false;
-                lblWorkflows.Visible = false;
+                var connectionWorkflows = connectionRequest.ConnectionOpportunity.ConnectionWorkflows.Union( connectionRequest.ConnectionOpportunity.ConnectionType.ConnectionWorkflows );
+                var manualWorkflows = connectionWorkflows
+                    .Where( w =>
+                        w.TriggerType == ConnectionWorkflowTriggerType.Manual &&
+                        w.WorkflowType != null )
+                    .OrderBy( w => w.WorkflowType.Name )
+                    .Distinct();
+
+                if ( manualWorkflows.Any() )
+                {
+                    lblWorkflows.Visible = true;
+                    rptRequestWorkflows.DataSource = manualWorkflows.ToList();
+                    rptRequestWorkflows.DataBind();
+                }
+                else
+                {
+                    lblWorkflows.Visible = false;
+                }
             }
+
+            BindConnectionRequestActivitiesGrid( connectionRequest, new RockContext() );
+        }
+
+        private void SetConsolidatorText(ConnectionRequest connectionRequest)
+        {
+            if (connectionRequest == null || connectionRequest.PersonAlias == null)
+            {
+                return;
+            }
+
+            var rockContext = new RockContext();
+            var consolidatedByRole = new GroupTypeRoleService(rockContext).Get(org.kcionline.bricksandmortarstudio.SystemGuid.GroupTypeRole.CONSOLIDATED_BY.AsGuid());
+            if (consolidatedByRole == null)
+            {
+                return;
+            }
+            var consolidators =
+                new GroupMemberService(rockContext).GetKnownRelationship(connectionRequest.PersonAlias.PersonId,
+                                                       consolidatedByRole.Id).ToList().Select( gm => gm.Person.FullName);
+
+            lConsolidator.Text = consolidators.Any() ? consolidators.Count() > 1 ? consolidators.JoinStrings(",") : consolidators.FirstOrDefault() : "Could Not Find Consolidator";
         }
 
         /// <summary>
@@ -1145,6 +1166,8 @@ namespace RockWeb.Plugins.KingsChurch
                 lConnector.Text = connectionRequest.ConnectorPersonAlias.Person.FullName;
                 lConnector.Visible = true;
             }
+
+            SetConsolidatorText(connectionRequest);
 
             var groupMemberService = new GroupMemberService( rockContext );
             var groupType = GroupTypeCache.Read( org.kcionline.bricksandmortarstudio.SystemGuid.GroupType.CELL_GROUP.AsGuid() );
