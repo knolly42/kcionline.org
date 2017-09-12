@@ -238,6 +238,43 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             return GetCellGroupsInLine( currentPerson, new RockContext(), false ).ToList().Any( g => g.Id == group.Id );
         }
 
+
+        /// <summary>
+        /// Determines whether a person is in a given leader or coordinator's line
+        /// </summary>
+        /// <param name="person">The person to check if is in the leader's line</param>
+        /// <param name="leader">The leader or coordinator</param>
+        /// <returns></returns>
+        public static bool IsPersonInLeadersLine(Person person, Person leader)
+        {
+            var rockContext = new RockContext();
+            if (person.PrimaryAliasId.HasValue)
+            {
+                return GetPeopleInLine( new PersonService( rockContext ), leader, rockContext, true ).Any( p => p.PrimaryAliasId == person.PrimaryAliasId );
+            }
+            return GetPeopleInLine(new PersonService(rockContext), leader, rockContext, true).Any(p => person.Id == p.Id);
+        }
+
+        /// <summary>
+        /// Determines whether a person is in a given leader or coordinator's line
+        /// </summary>
+        /// <param name="personId">The person id to check</param>
+        /// <param name="leader">The leader or coordinator</param>
+        /// <returns></returns>
+        public static bool IsPersonInLeadersLine( int personId, Person leader )
+        {
+            var rockContext = new RockContext();
+            var personService = new PersonService(rockContext);
+            var person = personService.Get(personId);
+            if ( person.PrimaryAliasId.HasValue )
+            {
+                return GetPeopleInLine( new PersonService( rockContext ), leader, rockContext, true ).Any( p => p.PrimaryAliasId == person.PrimaryAliasId );
+            }
+            return GetPeopleInLine( new PersonService( rockContext ), leader, rockContext, true ).Any( p => person.Id == p.Id );
+        }
+
+
+
         public static Group FindLineLeader (Person currentPerson)
         {
             var rockContext = new RockContext();
