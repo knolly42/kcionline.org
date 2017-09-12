@@ -317,7 +317,7 @@ namespace RockWeb.Plugins.KingsChurch
 
                         if (!GetAttributeValue("ConsolidationTrackerPage").IsNullOrWhiteSpace())
                         {
-                            var queryParms = new Dictionary<string, string> {{"success", "true"}, {"type", "place"}};
+                            var queryParms = new Dictionary<string, string> {{"success", "true"}, {"type", "place"}, {"personId", connectionRequest.PersonAlias.PersonId.ToString()} };
                             NavigateToLinkedPage("ConsolidationTrackerPage", queryParms);
                         }
                         else
@@ -531,9 +531,12 @@ namespace RockWeb.Plugins.KingsChurch
                             pnlTransferDetails.Visible = false;
                             if (!GetAttributeValue("ConsolidationTrackerPage").IsNullOrWhiteSpace())
                             {
-                                var queryParms = new Dictionary<string, string>();
-                                queryParms.Add("success", "true");
-                                queryParms.Add("type", "transfer");
+                                var queryParms = new Dictionary<string, string>
+                                {
+                                    {"success", "true"},
+                                    {"type", "transfer"},
+                                    {"personId", connectionRequest.PersonAlias.PersonId.ToString()}
+                                };
                                 NavigateToLinkedPage("ConsolidationTrackerPage", queryParms);
                             }
                             else
