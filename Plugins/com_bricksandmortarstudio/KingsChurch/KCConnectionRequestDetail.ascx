@@ -100,12 +100,12 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <Rock:GroupPicker ID="gpGroup" runat="server" Label="Group" OnSelectItem="gpGroup_SelectItem" />
+                            <Rock:RockDropDownList ID="gpGroup" Enabled="True" AutoPostBack="True" runat="server" Label="Group" />
                         </div>
                     </div>
 
                     <div class="actions">
-                        <asp:LinkButton ID="btnSave" Enabled="False" runat="server" AccessKey="s" Text="Place" CssClass="btn btn-success" OnClick="btnSave_Click"></asp:LinkButton>
+                        <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Place" CssClass="btn btn-success" OnClick="btnSave_Click"></asp:LinkButton>
                         <asp:LinkButton ID="btnCancel" runat="server" AccessKey="c" Text="Cancel" CssClass="btn btn-link" OnClick="btnCancel_Click" CausesValidation="false"></asp:LinkButton>
                     </div>
 

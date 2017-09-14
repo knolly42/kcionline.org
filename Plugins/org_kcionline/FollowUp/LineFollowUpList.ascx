@@ -5,6 +5,9 @@
     <ContentTemplate>
 
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
+            
+            <Rock:NotificationBox runat="server" ID="nbBox" Visible="False" NotificationBoxType="Success"></Rock:NotificationBox>
+
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-star"></i>Cell Line Follow Ups</h1>
             </div>

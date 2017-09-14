@@ -6,6 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using dotless.Core.Utils;
 using Microsoft.Ajax.Utilities;
+using org.kcionline.bricksandmortarstudio.Utils;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
@@ -1172,35 +1173,22 @@ namespace RockWeb.Plugins.KingsChurch
 
             SetConsolidatorText(connectionRequest);
 
-            var groupMemberService = new GroupMemberService( rockContext );
-            var groupType = GroupTypeCache.Read( org.kcionline.bricksandmortarstudio.SystemGuid.GroupType.CELL_GROUP.AsGuid() );
-            GroupMember currentPersonsCellGroupMember = null;
-            if ( groupType != null )
-            {
-                currentPersonsCellGroupMember =
-                    groupMemberService.GetByPersonId( CurrentPerson.Id )
-                                      .FirstOrDefault( gm => gm.Group.GroupTypeId == groupType.Id && gm.GroupRole.IsLeader );
-            }
 
-            var currentPersonsCellGroup = currentPersonsCellGroupMember != null ? currentPersonsCellGroupMember.Group : null;
+            var availableGroups = LineQuery.GetCellGroupsInLine(CurrentPerson, rockContext, false);
+            gpGroup.DataValueField = "Id";
+            gpGroup.DataTextField = "Name";
+            gpGroup.DataSource = availableGroups.ToList();
+            gpGroup.DataBind();
 
-            if ( currentPersonsCellGroup != null )
+            if (connectionRequest.AssignedGroupId.HasValue &&
+                availableGroups.Any(g => g.Id == connectionRequest.AssignedGroupId.Value))
             {
-                gpGroup.RootGroupId = currentPersonsCellGroup.Id;
+                gpGroup.SetValue(connectionRequest.AssignedGroup.Guid);
             }
-            else
+            else if (connectionRequest.AssignedGroupId.HasValue && connectionRequest.AssignedGroupId != 0)
             {
-                gpGroup.RootGroupId = -1;
-            }
-
-            var groupService = new GroupService( new RockContext() );
-            if ( connectionRequest.AssignedGroupId.HasValue )
-            {
-                var ancestorIds = groupService.GetAllAncestorIds( connectionRequest.AssignedGroupId.Value );
-                if ( ancestorIds.Contains( currentPersonsCellGroup.Id ) )
-                {
-                    gpGroup.SetValue( connectionRequest.AssignedGroupId );
-                }
+                btnSave.Enabled = false;
+                gpGroup.Enabled = false;
             }
         }
 
@@ -1477,18 +1465,5 @@ namespace RockWeb.Plugins.KingsChurch
         }
 
         #endregion
-
-
-        protected void gpGroup_SelectItem( object sender, EventArgs e )
-        {
-            if (!string.IsNullOrEmpty(gpGroup.SelectedValue))
-            {
-                btnSave.Enabled = true;
-            }
-            else
-            {
-                btnSave.Enabled = false;
-            }
-        }
     }
 }

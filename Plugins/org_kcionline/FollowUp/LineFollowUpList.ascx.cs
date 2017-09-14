@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI.WebControls;
+using Microsoft.Ajax.Utilities;
 using Mono.CSharp;
 using Rock.Data;
 using Rock.Model;
@@ -61,7 +62,26 @@ namespace org_kcionline.FollowUp
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+            nbBox.Visible = false;
+            var personId = Request.QueryString["personId"].AsIntegerOrNull();
+            if (!Request.QueryString["success"].IsNullOrWhiteSpace() && !Request.QueryString["type"].IsNullOrWhiteSpace() && personId != null && LineQuery.IsPersonInLeadersLine( personId.Value, CurrentPerson ) )
+            {
+                var person = new PersonService(new RockContext()).Get( personId.Value);
 
+                switch ( Request.QueryString["type"] )
+                {
+                    case "transfer":
+                        nbBox.Title = person.FullName;
+                        nbBox.Text =" has been transferred successfully";
+                        break;
+                    case "place":
+                        nbBox.Title = person.FullName;
+                        nbBox.Text = " has been placed into their group successfully";
+                        break;
+                }
+                nbBox.Visible = true;
+                nbBox.Dismissable = true;
+            }
             if ( !Page.IsPostBack )
             {
                 SetFilter();
