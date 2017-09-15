@@ -75,6 +75,7 @@ namespace org_kcionline.Groups
             var rockContext = new RockContext();
 
             var cellGroupsInLine = LineQuery.GetCellGroupsInLine( CurrentPerson, rockContext, false ).ToList();
+            int responsibilityCount = cellGroupsInLine.Count;
             var cellGroupdTypeGuid = org.kcionline.bricksandmortarstudio.SystemGuid.GroupType.CELL_GROUP.AsGuid();
 
             var cellMemberGroups =
@@ -89,7 +90,6 @@ namespace org_kcionline.Groups
             var groups = new List<GroupInvolvementSummary>();
 
             int totalCount = 0;
-            int responsibilityCount = cellGroupsInLine.Count;
             foreach ( var group in allCellGroups )
             {
                 bool isLeader = group.Members.Any( p => p.GroupRole.IsLeader && p.Person == CurrentPerson );

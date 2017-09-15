@@ -639,6 +639,8 @@ namespace org_kcionline.Groups
                 securityActions.Add( "Edit", group != null && ( group.IsAuthorized( Authorization.EDIT, CurrentPerson ) || LineQuery.IsGroupInPersonsLine(group, CurrentPerson) ) );
                 securityActions.Add( "Administrate", group != null && group.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson ) );
                 mergeFields.Add( "AllowedActions", securityActions );
+                mergeFields.Add("Groups", string.Join(",", LineQuery.GetCellGroupsInLine(CurrentPerson, new RockContext(), false).Select(g => g.Name).ToList()));
+
                 mergeFields.Add( "LinePermission", LineQuery.IsGroupInPersonsLine( group, CurrentPerson ) );
 
                 Dictionary<string, object> currentPageProperties = new Dictionary<string, object>();
