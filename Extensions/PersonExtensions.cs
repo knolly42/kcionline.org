@@ -63,7 +63,7 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
             var rockContext = new RockContext();
             var groupMemberService = new GroupMemberService( rockContext );
             var consolidatedBy = new GroupTypeRoleService( rockContext ).Get( SystemGuid.GroupTypeRole.CONSOLIDATED_BY.AsGuid() );
-            return groupMemberService.GetKnownRelationship( person.Id, consolidatedBy.Id ) != null
+            return groupMemberService.GetKnownRelationship(person.Id, consolidatedBy.Id) != null;
         }
 
         public static void SetConsolidator( this Person person, Person newConsolidator )
