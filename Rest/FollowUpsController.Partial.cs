@@ -12,9 +12,9 @@ using Rock.Web.Cache;
 
 namespace org.kcionline.bricksandmortarstudio.Rest
 {
-    public class LinePeopleAndFollowUpsController : Rock.Rest.ApiController<Person>
+    public class FollowUpsController : Rock.Rest.ApiController<Person>
     {
-        public LinePeopleAndFollowUpsController() : base( new PersonService( new RockContext() ) ) { }
+        public FollowUpsController() : base( new PersonService( new RockContext() ) ) { }
 
         /// <summary>
         /// Returns results to the Person Picker
@@ -27,7 +27,7 @@ namespace org.kcionline.bricksandmortarstudio.Rest
         /// <returns></returns>
         [Authenticate, Secured]
         [HttpGet]
-        [System.Web.Http.Route( "api/com_bricksandmortarstudio/LineAndFollowUpsSearch" )]
+        [System.Web.Http.Route( "api/com_bricksandmortarstudio/FollowUpsSearch" )]
         public IQueryable<PersonSearchResult> Search( string name, bool includeHtml, bool includeDetails, bool includeBusinesses = false, bool includeDeceased = false )
         {
             const int count = 20;

@@ -11,7 +11,7 @@ using Rock.Web.UI.Controls;
 
 namespace org.kcionline.bricksandmortarstudio.Web.UI
 {
-    public class LineAndFollowUpsPersonPicker : CompositeControl, IRockControl
+    public class FollowUpPersonPicker : CompositeControl, IRockControl
     {
         #region IRockControl implementation
 
@@ -389,7 +389,7 @@ namespace org.kcionline.bricksandmortarstudio.Web.UI
         /// <summary>
         /// Initializes a new instance of the <see cref="PersonPicker" /> class.
         /// </summary>
-        public LineAndFollowUpsPersonPicker()
+        public FollowUpPersonPicker()
         {
             // note we are using HiddenFieldValidator instead of RequiredFieldValidator
             RequiredFieldValidator = new HiddenFieldValidator();
@@ -426,7 +426,7 @@ namespace org.kcionline.bricksandmortarstudio.Web.UI
         /// </summary>
         protected virtual void RegisterJavaScript()
         {
-            string restUrl = ResolveUrl( "~/api/com_bricksandmortarstudio/LineAndFollowUpsSearch" );
+            string restUrl = ResolveUrl( "~/api/com_bricksandmortarstudio/FollowUpsSearch" );
             const string scriptFormat = "Rock.controls.personPicker.initialize({{ controlId: '{0}', restUrl: '{1}' }});";
             string script = string.Format( scriptFormat, ClientID, restUrl );
             ScriptManager.RegisterStartupScript( this, GetType(), "person_picker-" + ClientID, script, true );
