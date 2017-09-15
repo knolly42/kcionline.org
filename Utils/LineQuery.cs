@@ -69,6 +69,14 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             }
         }
 
+        /// <summary>
+        /// Gets the follow ups for the line below a leader or coordinator
+        /// </summary>
+        /// <param name="personService"></param>
+        /// <param name="currentPerson"></param>
+        /// <param name="rockContext"></param>
+        /// <param name="showAllIfStaff">If a staff member, should they see all people</param>
+        /// <returns></returns>
         public static IQueryable<Person> GetPeopleInLineFollowUps( PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
             if ( currentPerson == null )
@@ -100,7 +108,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                     followUpIds.AddRange( groupMemberService.GetKnownRelationship( personId, consolidatorGroupTypeRoleId ).Where( gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid ).Select( gm => gm.PersonId ) );
                 }
 
-                //Remove people who are in a group (not leaders or coordinators)
+                //Remove people who are in a group as a coordinator or leader
                 var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
                 var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
                 var idsToRemove =
@@ -266,11 +274,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             var rockContext = new RockContext();
             var personService = new PersonService(rockContext);
             var person = personService.Get(personId);
-            if ( person.PrimaryAliasId.HasValue )
-            {
-                return GetPeopleInLine( new PersonService( rockContext ), leader, rockContext, true ).Any( p => p.PrimaryAliasId == person.PrimaryAliasId );
-            }
-            return GetPeopleInLine( new PersonService( rockContext ), leader, rockContext, true ).Any( p => person.Id == p.Id );
+            return GetPeopleInLine( personService, leader, rockContext, true ).Any( p => person.Id == p.Id );
         }
 
 
