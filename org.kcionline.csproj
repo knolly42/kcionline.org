@@ -71,6 +71,7 @@
     <Compile Include="Lava\LavaFilters.cs" />
     <Compile Include="Lava\RegisterLavaFilters.cs" />
     <Compile Include="Migrations\001_AddKnownRelationships.cs" />
+    <Compile Include="Rest\LineAndFollowUpsController.Partial.cs" />
     <Compile Include="Rest\FollowUpsController.Partial.cs" />
     <Compile Include="Rest\ConsolidationCoordinatorsAndLeaders.Partial.cs" />
     <Compile Include="Rest\LinePeopleController.Partial.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="SystemGuid\GroupTypeRole.cs" />
     <Compile Include="Utils\LineQuery.cs" />
     <Compile Include="Web\UI\ControlHelper.cs" />
+    <Compile Include="Web\UI\LineAndFollowUpPersonPicker.cs" />
     <Compile Include="Web\UI\FollowUpPersonPicker.cs" />
     <Compile Include="Web\UI\ConsolidatorLeaderPicker.cs" />
     <Compile Include="Web\UI\LinePersonPicker.cs" />

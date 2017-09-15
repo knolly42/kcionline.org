@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Quartz.Util;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -125,6 +126,50 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                     followUpIds.Remove(idToRemove);
                 }
                 return personService.GetByIds( followUpIds ).Distinct();
+            }
+        }
+
+        public static IQueryable<Person> GetLineMembersAndFollowUps(PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff)
+        {
+            if (currentPerson == null)
+            {
+                return new List<Person>().AsQueryable();
+            }
+
+            if (showAllIfStaff && CheckIsStaff(currentPerson, rockContext))
+            {
+                return personService.Queryable();
+            }
+            else
+            {
+                var cellGroupsIdsInLine = GetCellGroupIdsInLine(currentPerson, rockContext);
+                var recordStatusIsActiveGuid = Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid();
+                var groupMemberService = new GroupMemberService(rockContext);
+
+                // Get person Ids from line
+                var linePersonIds =
+                    groupMemberService.Queryable()
+                                      .Where(
+                                          gm =>
+                                              cellGroupsIdsInLine.Contains(gm.GroupId) &&
+                                              gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid)
+                                      .Select(gm => gm.PersonId).ToList();
+
+                // Get people's follow ups
+                int consolidatorGroupTypeRoleId =
+                    new GroupTypeRoleService(rockContext).Get(SystemGuid.GroupTypeRole.CONSOLIDATOR.AsGuid()).Id;
+                var lineAndFollowUpIds = new List<int>();
+                foreach (int personId in linePersonIds)
+                {
+                    lineAndFollowUpIds.AddRange(
+                        groupMemberService.GetKnownRelationship(personId, consolidatorGroupTypeRoleId)
+                                          .Where(gm => gm.Person.RecordStatusValue.Guid == recordStatusIsActiveGuid)
+                                          .Select(gm => gm.PersonId));
+                }
+                
+                lineAndFollowUpIds.AddRange(linePersonIds);
+                
+                return personService.GetByIds( lineAndFollowUpIds ).Distinct();
             }
         }
 
@@ -276,8 +321,6 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             var person = personService.Get(personId);
             return GetPeopleInLine( personService, leader, rockContext, true ).Any( p => person.Id == p.Id );
         }
-
-
 
         public static Group FindLineLeader (Person currentPerson)
         {
