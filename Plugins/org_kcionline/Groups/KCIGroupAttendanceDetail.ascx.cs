@@ -71,7 +71,7 @@ namespace org_kcionline.Groups
 
             if ( _group != null && CurrentPerson != null && ( _group.IsAuthorized( Authorization.EDIT, CurrentPerson ) || LineQuery.IsGroupInPersonsLine( _group, CurrentPerson ) ))
             {
-                lHeading.Text = _group.Name + " Attendance";
+                lHeading.Text = " Attendance: " + _group.Name ;
                 _canEdit = true;
             }
 
