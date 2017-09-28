@@ -119,12 +119,12 @@ namespace org_kcionline.FollowUp
             }
             var person = new PersonService(new RockContext()).Get(ppFollowUp.SelectedValue.Value);
             SetConsolidatorText(person);
-            lbMove.Enabled = ppNewConsolidator.SelectedValue.HasValue;
+            lbMoveInMyLine.Enabled = ppNewConsolidator.SelectedValue.HasValue;
         }
 
         protected void ppNewConsolidator_OnSelectPerson( object sender, EventArgs e )
         {
-            lbMove.Enabled = ppFollowUp.SelectedValue.HasValue;
+            lbMoveInMyLine.Enabled = ppFollowUp.SelectedValue.HasValue;
         }
 
         #endregion
@@ -200,7 +200,7 @@ namespace org_kcionline.FollowUp
                                 }
                             }
                         }
-                        new WorkflowService( rockContext ).Process( workflow, out workflowErrors );
+                        new WorkflowService( rockContext ).Process( workflow, followUp.PrimaryAlias, out workflowErrors );
                         if ( !workflowErrors.Any() )
                         {
                             var queryParms = new Dictionary<string, string>
@@ -252,7 +252,7 @@ namespace org_kcionline.FollowUp
                                 }
                             }
                         }
-                        new WorkflowService( rockContext ).Process( workflow, out workflowErrors );
+                        new WorkflowService( rockContext ).Process( workflow, followUp.PrimaryAlias, out workflowErrors );
                         if (!workflowErrors.Any())
                         {
                             var queryParms = new Dictionary<string, string>
@@ -287,6 +287,11 @@ namespace org_kcionline.FollowUp
             anotherLineTab.Visible = false;
             lAnotherLine.RemoveCssClass( "active" );
             lMyLine.AddCssClass( "active" );
+        }
+
+        protected void ppAnotherLineNewConsolidator_OnSelectPerson(object sender, EventArgs e)
+        {
+            lbMoveToAnotherLine.Enabled = ppFollowUp.SelectedValue.HasValue;
         }
     }
 }
