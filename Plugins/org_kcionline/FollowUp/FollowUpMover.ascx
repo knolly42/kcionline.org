@@ -17,9 +17,26 @@
                         <Rock:RockLiteral runat="server" Visible="False" ID="lConsolidator" Label="Current Consolidator"></Rock:RockLiteral>
                     </div>
                     <div class="col-md-6">
-                        <KCIOnline:LinePersonPicker runat="server" ID="ppNewConsolidator" Label="New Consolidator" Help="The person who should adopt the follow up" OnSelectPerson="ppNewConsolidator_OnSelectPerson"/>
-                        <asp:LinkButton runat="server" ID="lbMove" CssClass="btn btn-primary" Enabled="False" Text="Move" OnClick="lbMove_OnClick" ></asp:LinkButton>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <ul class="nav nav-pills" >
+                                    <li role="presentation" runat="server" id="lMyLine" class="active"><asp:LinkButton runat="server" OnClick="ChangeToMyLine">My Line</asp:LinkButton></li>
+                                    <li role="presentation" runat="server" id="lAnotherLine" class=""><asp:LinkButton runat="server" OnClick="ChangeToAnotherLine">Another Line</asp:LinkButton></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div id="lineTab" runat="server" Visible="True">
+                                <KCIOnline:LinePersonPicker runat="server" ID="ppNewConsolidator" Label="New Consolidator" Help="The person who should adopt the follow up" OnSelectPerson="ppNewConsolidator_OnSelectPerson"/>
+                                <asp:LinkButton runat="server" ID="lbMove" CssClass="btn btn-primary" Enabled="False" Text="Move" OnClick="lbTransferMyLine_OnClick" ></asp:LinkButton>
+                            </div>
+                             <div id="anotherLineTab" runat="server" Visible="False">
+                                <KCIOnline:ConsolidatorLeaderPicker runat="server" ID="ppAnotherLineNewConsolidator" Label="New Consolidator" Help="The person who should adopt the follow up" OnSelectPerson="ppNewConsolidator_OnSelectPerson"/>
+                                <asp:LinkButton runat="server" ID="lbTransfer" CssClass="btn btn-primary" Enabled="False" Text="Move" OnClick="lbTransferAnotherLine_OnClick" ></asp:LinkButton>
+                            </div>
+                        </div>
                     </div>
+                    
                 </div>
             </div>
         

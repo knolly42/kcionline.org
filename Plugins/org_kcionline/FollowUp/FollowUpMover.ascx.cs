@@ -16,7 +16,10 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using Mono.CSharp;
 using org.kcionline.bricksandmortarstudio.Extensions;
 using Rock;
 using Rock.Attribute;
@@ -32,6 +35,10 @@ namespace org_kcionline.FollowUp
     [DisplayName( "Follow Up Mover" )]
     [Category( "Bricks and Mortar Studio" )]
     [Description( "Template block for developers to use to start a new detail block." )]
+    [WorkflowTypeField( "Reassign Workflow Type", "The workflow type fired when a person is transferred within their line", order: 4 )]
+    [TextField( "Reassign Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 5 )]
+    [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred to another line", order: 6 )]
+    [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7 )]
     public partial class FollowUpMover : Rock.Web.UI.RockBlock
     {
         #region Fields
@@ -162,10 +169,124 @@ namespace org_kcionline.FollowUp
 
         #endregion
 
-        protected void lbMove_OnClick(object sender, EventArgs e)
+        protected void lbTransferMyLine_OnClick(object sender, EventArgs e)
         {
-            UpdateFollowUps();
-            NavigateToParentPage();
+            var rockContext = new RockContext();
+            var personService = new PersonService( rockContext );
+            var followUp = personService.Get( ppFollowUp.SelectedValue.Value );
+
+            var workflowTypeGuid = GetAttributeValue( "TransferWorkflowType" ).AsGuidOrNull();
+            if ( workflowTypeGuid.HasValue && ppNewConsolidator.SelectedValue.HasValue )
+            {
+                var workflowTypeService = new WorkflowTypeService( rockContext );
+                var workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
+                if ( workflowType != null )
+                {
+                    try
+                    {
+
+                        List<string> workflowErrors;
+                        var workflow = Workflow.Activate( workflowType, followUp.FullName );
+                        if ( workflow.AttributeValues != null )
+                        {
+                            if ( workflow.AttributeValues.ContainsKey( GetAttributeValue( "TransferAttributeKey" ) ) )
+                            {
+                                var personAlias =
+                                    new PersonAliasService( rockContext ).Get( ppNewConsolidator.PersonAliasId.Value );
+                                if ( personAlias != null )
+                                {
+                                    workflow.AttributeValues[GetAttributeValue( "TransferAttributeKey" )].Value =
+                                        personAlias.Guid.ToString();
+                                }
+                            }
+                        }
+                        new WorkflowService( rockContext ).Process( workflow, out workflowErrors );
+                        if ( !workflowErrors.Any() )
+                        {
+                            var queryParms = new Dictionary<string, string>
+                                {
+                                    {"success", "true"},
+                                    {"type", "transfer"},
+                                    {"personId", ppFollowUp.PersonId.ToString()}
+                                };
+
+                            NavigateToParentPage( queryParms );
+                        }
+                    }
+                    catch ( Exception ex )
+                    {
+                        ExceptionLogService.LogException( ex, this.Context );
+                    }
+                }
+            }
+        }
+
+        protected void lbTransferAnotherLine_OnClick(object sender, EventArgs e)
+        {
+            var rockContext = new RockContext();
+            var personService = new PersonService( rockContext );
+            var followUp = personService.Get( ppAnotherLineNewConsolidator.SelectedValue.Value );
+
+            var workflowTypeGuid = GetAttributeValue( "ReassignWorkflowType" ).AsGuidOrNull();
+            if ( workflowTypeGuid.HasValue && ppAnotherLineNewConsolidator.SelectedValue.HasValue )
+            {
+                var workflowTypeService = new WorkflowTypeService( rockContext );
+                var workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
+                if ( workflowType != null )
+                {
+                    try
+                    {
+
+                        List<string> workflowErrors;
+                        var workflow = Workflow.Activate( workflowType, followUp.FullName );
+                        if ( workflow.AttributeValues != null )
+                        {
+                            if ( workflow.AttributeValues.ContainsKey( GetAttributeValue( "ReassignAttributeKey" ) ) )
+                            {
+                                var personAlias =
+                                    new PersonAliasService( rockContext ).Get( ppAnotherLineNewConsolidator.PersonAliasId.Value );
+                                if ( personAlias != null )
+                                {
+                                    workflow.AttributeValues[GetAttributeValue( "ReassignAttributeKey" )].Value =
+                                        personAlias.Guid.ToString();
+                                }
+                            }
+                        }
+                        new WorkflowService( rockContext ).Process( workflow, out workflowErrors );
+                        if (!workflowErrors.Any())
+                        {
+                            var queryParms = new Dictionary<string, string>
+                                {
+                                    {"success", "true"},
+                                    {"type", "transfer"},
+                                    {"personId", ppFollowUp.PersonId.ToString()}
+                                };
+
+                            NavigateToParentPage( queryParms );
+                        }
+                    }
+                    catch ( Exception ex )
+                    {
+                        ExceptionLogService.LogException( ex, this.Context );
+                    }
+                }
+            }
+        }
+
+        protected void ChangeToAnotherLine(object sender, EventArgs e)
+        {
+            lineTab.Visible = false;
+            anotherLineTab.Visible = true;
+            lAnotherLine.AddCssClass("active");
+            lMyLine.RemoveCssClass("active");
+        }
+
+        protected void ChangeToMyLine(object sender, EventArgs e)
+        {
+            lineTab.Visible = true;
+            anotherLineTab.Visible = false;
+            lAnotherLine.RemoveCssClass( "active" );
+            lMyLine.AddCssClass( "active" );
         }
     }
 }
