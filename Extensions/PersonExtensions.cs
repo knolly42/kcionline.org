@@ -76,6 +76,7 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
             }
             var consolidatedBy = new GroupTypeRoleService( rockContext ).Get( SystemGuid.GroupTypeRole.CONSOLIDATED_BY.AsGuid() );
             groupMemberService.CreateKnownRelationship( person.Id, newConsolidator.Id, consolidatedBy.Id );
+            rockContext.SaveChanges();
         }
 
         public static void RemoveConsolidator( this Person person, Person newConsolidator )
@@ -88,6 +89,7 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
             }
             var consolidatedBy = new GroupTypeRoleService( rockContext ).Get( SystemGuid.GroupTypeRole.CONSOLIDATED_BY.AsGuid() );
             groupMemberService.DeleteKnownRelationship( person.Id, newConsolidator.Id, consolidatedBy.Id );
+            rockContext.SaveChanges();
         }
     }
 }
