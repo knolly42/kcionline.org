@@ -36,9 +36,9 @@ namespace org_kcionline.FollowUp
     [Category( "Bricks and Mortar Studio" )]
     [Description( "Template block for developers to use to start a new detail block." )]
     [WorkflowTypeField( "Reassign Workflow Type", "The workflow type fired when a person is transferred within their line", order: 4 )]
-    [TextField( "Reassign Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 5 )]
+    [TextField( "Reassign Attribute Key", "The attribute key for the workflow attribute corresponding to the new selected follow upper", true, "NewConnector", order: 5 )]
     [WorkflowTypeField( "Transfer Workflow Type", "The workflow type fired when a person is transferred to another line", order: 6 )]
-    [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new connector", true, "NewConnector", order: 7 )]
+    [TextField( "Transfer Attribute Key", "The attribute key for the workflow attribute corresponding to the new selected follow upper", true, "NewConnector", order: 7 )]
     public partial class FollowUpMover : Rock.Web.UI.RockBlock
     {
         #region Fields
@@ -225,7 +225,7 @@ namespace org_kcionline.FollowUp
         {
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
-            var followUp = personService.Get( ppAnotherLineNewConsolidator.SelectedValue.Value );
+            var followUp = personService.Get( ppFollowUp.SelectedValue.Value );
 
             var workflowTypeGuid = GetAttributeValue( "ReassignWorkflowType" ).AsGuidOrNull();
             if ( workflowTypeGuid.HasValue && ppAnotherLineNewConsolidator.SelectedValue.HasValue )
