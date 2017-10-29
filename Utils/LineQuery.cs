@@ -129,6 +129,14 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             }
         }
 
+        /// <summary>
+        /// Gets the line members *and* their follow ups of the line below a leader or coordinator
+        /// </summary>
+        /// <param name="personService"></param>
+        /// <param name="currentPerson"></param>
+        /// <param name="rockContext"></param>
+        /// <param name="showAllIfStaff"></param>
+        /// <returns></returns>
         public static IQueryable<Person> GetLineMembersAndFollowUps(PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff)
         {
             if (currentPerson == null)
@@ -173,6 +181,7 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             }
         }
 
+
         private static bool CheckIsStaff( Person currentPerson, RockContext rockContext )
         {
             bool isStaff = false;
@@ -206,6 +215,13 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             return isStaff;
         }
 
+        /// <summary>
+        /// Get's the cell groups in a person's line
+        /// </summary>
+        /// <param name="currentPerson"></param>
+        /// <param name="rockContext"></param>
+        /// <param name="showAllIfStaff"></param>
+        /// <returns></returns>
         public static IQueryable<Group> GetCellGroupsInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
         {
             if ( currentPerson == null )
@@ -259,6 +275,11 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             return descendentGroups.Distinct();
         }
 
+        /// <summary>
+        /// Get's all of the (get connected/ follow up) *requests* for a given person
+        /// </summary>
+        /// <param name="currentPerson">The leader</param>
+        /// <returns></returns>
         public static IQueryable<ConnectionRequest> GetPeopleInLineFollowUpRequests( Person currentPerson )
         {
             if ( currentPerson == null )
