@@ -43,10 +43,6 @@ namespace org_kcionline.FollowUp
         {
             if ( !Page.IsPostBack )
             {
-                if (!CurrentPerson.HasALine())
-                {
-                    tViewLineType.Visible = false;
-                }
                 GetFollowUps();
             }
 
@@ -76,6 +72,12 @@ namespace org_kcionline.FollowUp
 
         private void GetFollowUps()
         {
+            if ( !CurrentPerson.HasALine() )
+            {
+                tViewLineType.Visible = false;
+                ppConsolidator.Visible = false;
+            }
+
             var rockContext = new RockContext();
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
@@ -100,6 +102,12 @@ namespace org_kcionline.FollowUp
                 .OrderBy(f => f.Person.ConnectionStatusValue.Value == "GetConnected")
                 .ThenBy(f => f.Consolidator.Id);
 
+            if ( ppConsolidator.SelectedValue != null)
+            {
+                followUpSummaries =
+                    followUpSummaries.Where(f => f.Consolidator.Id == ppConsolidator.SelectedValue );
+            }
+
             mergeFields["FollowUps"] = followUpSummaries.ToList();
 
             string template = GetAttributeValue( "LavaTemplate" );
@@ -123,5 +131,10 @@ namespace org_kcionline.FollowUp
         }
 
         #endregion
+
+        protected void tViewLineType_OnCheckedChanged(object sender, EventArgs e)
+        {
+            GetFollowUps();
+        }
     }
 }
