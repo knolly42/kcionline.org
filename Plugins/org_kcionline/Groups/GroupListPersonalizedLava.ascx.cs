@@ -105,7 +105,7 @@ namespace org_kcionline.Groups
             }
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-            mergeFields.Add( "Groups", groups );
+            mergeFields.Add( "Groups", groups.OrderBy(gis => gis.Group.Name) );
             mergeFields.Add( "TotalCount", totalCount );
             mergeFields.Add("ResponsibilityCount", responsibilityCount );
             var linkedPages = new Dictionary<string, object>();

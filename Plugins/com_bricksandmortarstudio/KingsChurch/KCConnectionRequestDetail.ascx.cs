@@ -1177,7 +1177,7 @@ namespace RockWeb.Plugins.KingsChurch
             var availableGroups = LineQuery.GetCellGroupsInLine(CurrentPerson, rockContext, false);
             gpGroup.DataValueField = "Id";
             gpGroup.DataTextField = "Name";
-            gpGroup.DataSource = availableGroups.ToList();
+            gpGroup.DataSource = availableGroups.OrderBy(g => g.Name).ToList();
             gpGroup.DataBind();
 
             if (connectionRequest.AssignedGroupId.HasValue &&

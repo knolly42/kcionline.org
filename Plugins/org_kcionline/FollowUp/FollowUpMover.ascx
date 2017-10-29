@@ -12,16 +12,16 @@
             </div>
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <KCIOnline:FollowUpPersonPicker runat="server" Label="Follow Up" ID="ppFollowUp" Help="The person to move"  OnSelectPerson="ppFollowUp_OnSelectPerson" />
                         <Rock:RockLiteral runat="server" Visible="False" ID="lConsolidator" Label="Current Consolidator"></Rock:RockLiteral>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <div class="row">
                             <div class="col-md-12">
                                 <ul class="nav nav-pills" >
-                                    <li role="presentation" runat="server" id="lMyLine" class="active"><asp:LinkButton runat="server" OnClick="ChangeToMyLine">My Line</asp:LinkButton></li>
-                                    <li role="presentation" runat="server" id="lAnotherLine" class=""><asp:LinkButton runat="server" OnClick="ChangeToAnotherLine">Another Line</asp:LinkButton></li>
+                                    <li role="presentation" runat="server" id="lMyLine" class="active"><asp:LinkButton runat="server" OnClick="ChangeToMyLine">Change Consolidator</asp:LinkButton></li>
+                                    <li role="presentation" runat="server" id="lAnotherLine" class=""><asp:LinkButton runat="server" OnClick="ChangeToAnotherLine">Transfer to Another Coordinator</asp:LinkButton></li>
                                 </ul>
                             </div>
                         </div>

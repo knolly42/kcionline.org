@@ -89,6 +89,7 @@ namespace org_kcionline.FollowUp
                     var person = personService.Get(personGuid.Value);
                     ppFollowUp.SetValue(person);
                     ppFollowUp.Enabled = false;
+                    ppFollowUp.Visible = false;
                     SetConsolidatorText(person);
                 }
             }
@@ -137,34 +138,6 @@ namespace org_kcionline.FollowUp
         {
             var consolidator = person.GetConsolidator();
             lConsolidator.Text = consolidator != null ? person.FullName : "No Current Consolidator";
-        }
-
-        private void UpdateFollowUps()
-        {
-            if (!ppFollowUp.SelectedValue.HasValue || !ppNewConsolidator.SelectedValue.HasValue)
-            {
-                nbInfo.NotificationBoxType = NotificationBoxType.Danger;
-                nbInfo.Text = "Either a follow up or a new consolidator hasn't been chosen";
-                return;
-            }
-            var rockContext = new RockContext();
-            var personService = new PersonService(rockContext);
-            var followUp = personService.Get(ppFollowUp.SelectedValue.Value);
-            var currentConsolidator = followUp.GetConsolidator(rockContext);
-            var newConsolidator = personService.Get(ppNewConsolidator.SelectedValue.Value);
-
-            if (newConsolidator == null)
-            {
-                nbInfo.NotificationBoxType = NotificationBoxType.Danger;
-                nbInfo.Text = "Cannot find new consolidator";
-            }
-
-            if (currentConsolidator != null)
-            {
-                followUp.RemoveConsolidator(currentConsolidator);
-            }
-
-            followUp.SetConsolidator(newConsolidator);
         }
 
         #endregion
