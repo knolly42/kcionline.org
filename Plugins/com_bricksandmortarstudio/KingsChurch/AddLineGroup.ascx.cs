@@ -378,7 +378,7 @@ namespace RockWeb.Plugins.com_bricksandmortarstudio.KingsChurch
                     leader.Person = new PersonService( rockContext ).Get( lppLeader.PersonId.Value );
                     leader.GroupRole = parentGroup.GroupType.Roles.Where( r => r.IsLeader ).FirstOrDefault() ?? parentGroup.GroupType.DefaultGroupRole;
 
-                    group.Name = String.Format( "{0}, {1}", leader.Person.LastName, leader.Person.NickName );
+                    group.Name = String.Format( "{0}, {1}", leader.Person.NickName, leader.Person.LastName );
                     group.Description = tbDescription.Text;
                     group.CampusId = parentGroup.CampusId;
                     group.GroupTypeId = CurrentGroupTypeId;
