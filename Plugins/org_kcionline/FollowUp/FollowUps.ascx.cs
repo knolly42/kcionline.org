@@ -86,16 +86,16 @@ namespace org_kcionline.FollowUp
             // My Line
             if (tViewLineType.Checked)
             {
-                var followUps = CurrentPerson.GetFollowUps();
+                var followUps = CurrentPerson.GetFollowUps().ToList();
                 followUpSummaries =
-                    followUps.Select(f => new FollowUpSummary() {Person = f, Consolidator = CurrentPerson});
+                    followUps.Select(f => new FollowUpSummary() {Person = f, Consolidator = CurrentPerson}).AsQueryable();
             }
             else // My Line's Follow Ups
             {
                 var followUps = LineQuery.GetPeopleInLineFollowUps(new PersonService(rockContext), CurrentPerson,
-                    rockContext, false);
+                    rockContext, false).ToList();
                 followUpSummaries =
-                    followUps.Select(f => new FollowUpSummary() {Person = f, Consolidator = f.GetConsolidator()});
+                    followUps.Select(f => new FollowUpSummary() {Person = f, Consolidator = f.GetConsolidator()}).AsQueryable();
             }
 
             followUpSummaries = followUpSummaries
@@ -109,6 +109,7 @@ namespace org_kcionline.FollowUp
             }
 
             mergeFields["FollowUps"] = followUpSummaries.ToList();
+            mergeFields["MyLine"] = tViewLineType.Checked;
 
             string template = GetAttributeValue( "LavaTemplate" );
 
@@ -123,7 +124,7 @@ namespace org_kcionline.FollowUp
             lContent.Text = template.ResolveMergeFields( mergeFields );
         }
 
-        [DotLiquid.LiquidType( "Person", "Coordinator" )]
+        [DotLiquid.LiquidType( "Person", "Consolidator" )]
         public class FollowUpSummary
         {
             public Person Person { get; set; }
