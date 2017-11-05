@@ -82,9 +82,9 @@ namespace org_kcionline.FollowUp
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
             IQueryable<FollowUpSummary> followUpSummaries;
-
-            // My Line
-            if (tViewLineType.Checked)
+            
+            bool isMyLine = tViewLineType.Checked;
+            if ( isMyLine )
             {
                 var followUps = CurrentPerson.GetFollowUps().ToList();
                 followUpSummaries =
@@ -98,18 +98,19 @@ namespace org_kcionline.FollowUp
                     followUps.Select(f => new FollowUpSummary() {Person = f, Consolidator = f.GetConsolidator()}).AsQueryable();
             }
 
-            followUpSummaries = followUpSummaries
-                .OrderBy(f => f.Person.ConnectionStatusValue.Value == "GetConnected")
-                .ThenBy(f => f.Consolidator.Id);
-
             if ( ppConsolidator.SelectedValue != null)
             {
                 followUpSummaries =
                     followUpSummaries.Where(f => f.Consolidator.Id == ppConsolidator.SelectedValue );
             }
 
+
+            followUpSummaries = followUpSummaries
+                .OrderByDescending( f => f.Person.ConnectionStatusValue.Value == "GetConnected" )
+                .ThenBy( f => f.Consolidator.Id );
+
             mergeFields["FollowUps"] = followUpSummaries.ToList();
-            mergeFields["MyLine"] = tViewLineType.Checked;
+            mergeFields["MyLine"] = isMyLine;
 
             string template = GetAttributeValue( "LavaTemplate" );
 
@@ -134,6 +135,11 @@ namespace org_kcionline.FollowUp
         #endregion
 
         protected void tViewLineType_OnCheckedChanged(object sender, EventArgs e)
+        {
+            GetFollowUps();
+        }
+
+        protected void ppConsolidator_OnSelectPerson(object sender, EventArgs e)
         {
             GetFollowUps();
         }
