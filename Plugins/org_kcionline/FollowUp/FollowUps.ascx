@@ -5,14 +5,17 @@
     <ContentTemplate>
         <div class="panel panel-block">
             <div class="panel-heading clearfix">
-                <h1 class="panel-title">Follow Ups</h1>    
+                <h1 class="panel-title"><asp:Label runat="server" Text="<%# ddlChoices.SelectedValue %>"></asp:Label></h1>    
             </div>
             <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <KCIOnline:LinePersonPicker Label="Filter By Consolidator" runat="server" ID="ppConsolidator" OnSelectPerson="ppConsolidator_OnSelectPerson" Visible="True"/>
+                <div class="row" runat="server" ID="leaderControlRow">
+                    <div class="col-md-4">
+                        <KCIOnline:LinePersonPicker Label="Filter" runat="server" ID="ppFilter" OnSelectPerson="ppFilter_OnSelectPerson"/>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <Rock:RockDropDownList runat="server" ID="ddlChoices" OnSelectedIndexChanged="ddlChoices_OnSelectedIndexChanged"/>
+                    </div>
+                    <div class="col-md-4">
                         <Rock:Toggle ID="tViewLineType" Visible="True" runat="server" Label="Showing" OnText="My Follow Ups" OffText="My Line's Follow Ups" Checked="true" OnCheckedChanged="tViewLineType_OnCheckedChanged"   />
                     </div>
                     <div class="col-md-12">

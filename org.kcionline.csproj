@@ -77,6 +77,7 @@
     <Compile Include="Rest\LinePeopleController.Partial.cs" />
     <Compile Include="SystemGuid\ConnectionType.cs" />
     <Compile Include="SystemGuid\ConnectionOpportunity.cs" />
+    <Compile Include="Constants\DefinedValue.cs" />
     <Compile Include="SystemGuid\GroupType.cs" />
     <Compile Include="SystemGuid\GroupTypeRole.cs" />
     <Compile Include="Utils\LineQuery.cs" />

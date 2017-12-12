@@ -4,6 +4,7 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using org.kcionline.bricksandmortarstudio.Utils;
+using Rock.Web.Cache;
 
 namespace org.kcionline.bricksandmortarstudio.Extensions
 {
@@ -26,6 +27,12 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
             var cellGroupType = Rock.Web.Cache.GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
             var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
             return new GroupMemberService( rockContext ).Queryable().Any( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) && gm.PersonId == person.Id );
+        }
+
+        public static bool InAGroup(this Person person, RockContext rockContext )
+        {
+            var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+            return new GroupMemberService( rockContext ).Queryable().Any( gm => gm.Group.GroupTypeId == cellGroupType.Id);
         }
 
 
@@ -77,6 +84,62 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
         public static IQueryable<Person> GetFollowUps( this Person consolidator )
         {
             return GetFollowUps( consolidator, new RockContext() );
+        }
+
+        /// <summary>
+        /// Gets the people that are group members in a group where the person is a leader
+        /// </summary>
+        public static IQueryable<Person> GetPeopleLeadInKCIGroups(this Person leader, RockContext rockContext)
+        {
+            var groupMemberService = new GroupMemberService( rockContext );
+            var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+            IQueryable<GroupMember> currentPersonsCellGroups = null;
+
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+            if (cellGroupType == null)
+            {
+                throw new Exception("Cannot locate KCI Group type");
+            }
+            currentPersonsCellGroups = groupMemberService
+                .GetByPersonId( leader.Id )
+                .Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) ).Distinct();
+            return
+                groupMemberService.GetByGuids(currentPersonsCellGroups.Select(g => g.Guid).ToList())
+                                  .Select(gm => gm.Person);
+        }
+
+        public static IQueryable<Group> GetGroupsLead(this Person leader, RockContext rockContext)
+        {
+            var groupMemberService = new GroupMemberService( rockContext );
+            var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+            IQueryable<GroupMember> currentPersonsCellGroups = null;
+
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+            if ( cellGroupType == null )
+            {
+                throw new Exception( "Cannot locate KCI Group type" );
+            }
+            return groupMemberService
+                .GetByPersonId( leader.Id )
+                .Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) ).Select(gm => gm.Group).Distinct();
+        }
+
+        /// <summary>
+        ///  Get a person's group members they lead and their followups
+        /// </summary>
+        /// <param name="leader"></param>
+        /// <param name="rockContext"></param>
+        /// <returns></returns>
+        public static IQueryable<Person> GetPersonsLine(this Person leader, RockContext rockContext)
+        {
+            return leader.GetPeopleLeadInKCIGroups(rockContext).Union(leader.GetFollowUps(rockContext));
+        }
+
+        public static Group GetPersonsPrimaryKciGroup(this Person person, RockContext rockContext)
+        {
+            var groupMemberService = new GroupMemberService( rockContext );
+            var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+            return groupMemberService.GetByPersonId(person.Id).Select(gm => gm.Group).FirstOrDefault(g => g.GroupTypeId == cellGroupType.Id);
         }
 
         public static bool HasConsolidator( this Person person )
