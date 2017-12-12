@@ -962,7 +962,7 @@ namespace org_kcionline.Groups
             }
 
 
-            lGroupName.Text = groupMember.Group.Name;
+//            lGroupName.Text = groupMember.Group.Name;
 
             // load dropdowns
             LoadGroupMemberDropDowns( _groupId );

@@ -43,6 +43,10 @@ namespace org_kcionline.FollowUp
         {
             if ( !Page.IsPostBack )
             {
+                if (CurrentPerson.HasALine())
+                {
+                    tViewLineType.Checked = false;
+                }
                 GetFollowUps();
             }
 
@@ -60,10 +64,6 @@ namespace org_kcionline.FollowUp
             {
                 GetFollowUps();
             }
-            else
-            {
-                // TODO
-            }
         }
 
         #endregion
@@ -72,7 +72,7 @@ namespace org_kcionline.FollowUp
 
         private void GetFollowUps()
         {
-            if ( !CurrentPerson.HasALine() )
+            if (!CurrentPerson.HasALine())
             {
                 tViewLineType.Visible = false;
                 ppConsolidator.Visible = false;
@@ -82,9 +82,9 @@ namespace org_kcionline.FollowUp
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
             IQueryable<FollowUpSummary> followUpSummaries;
-            
-            bool isMyLine = tViewLineType.Checked;
-            if ( isMyLine )
+
+            bool isMyFollowUps = tViewLineType.Checked;
+            if ( isMyFollowUps )
             {
                 var followUps = CurrentPerson.GetFollowUps().ToList();
                 followUpSummaries =
@@ -110,7 +110,7 @@ namespace org_kcionline.FollowUp
                 .ThenBy( f => f.Consolidator.Id );
 
             mergeFields["FollowUps"] = followUpSummaries.ToList();
-            mergeFields["MyLine"] = isMyLine;
+            mergeFields["MyLine"] = isMyFollowUps;
 
             string template = GetAttributeValue( "LavaTemplate" );
 

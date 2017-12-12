@@ -90,9 +90,16 @@ namespace org_kcionline.Groups
             var groups = new List<GroupInvolvementSummary>();
 
             int totalCount = 0;
+            int amLeaderOfMembersCount = 0;
+            int amLeaderOfGroupCount = 0;
             foreach ( var group in allCellGroups )
             {
                 bool isLeader = group.Members.Any( p => p.GroupRole.IsLeader && p.Person == CurrentPerson );
+                if (isLeader)
+                {
+                    amLeaderOfMembersCount += group.Members.Count;
+                    amLeaderOfGroupCount++;
+                }
                 bool isMember = group.Members.Any( p => p.Person == CurrentPerson );
                 totalCount += group.Members.Count;
                 groups.Add( new GroupInvolvementSummary
@@ -108,6 +115,8 @@ namespace org_kcionline.Groups
             mergeFields.Add( "Groups", groups.OrderBy(gis => gis.Group.Name) );
             mergeFields.Add( "TotalCount", totalCount );
             mergeFields.Add("ResponsibilityCount", responsibilityCount );
+            mergeFields.Add( "LeaderOfMemberCount", amLeaderOfMembersCount);
+            mergeFields.Add( "LeaderOfGroupCount", amLeaderOfGroupCount );
             var linkedPages = new Dictionary<string, object>();
             linkedPages.Add( "DetailPage", LinkedPageRoute( "DetailPage" ) );
             mergeFields.Add( "LinkedPages", linkedPages );
@@ -125,7 +134,7 @@ namespace org_kcionline.Groups
             lContent.Text = template.ResolveMergeFields( mergeFields );
         }
 
-        [DotLiquid.LiquidType( "Group", "IsLeader", "MemberCount" )]
+        [DotLiquid.LiquidType( "Group", "IsLeader", "MemberCount", "IsMember" )]
         public class GroupInvolvementSummary
         {
             public Group Group { get; set; }

@@ -83,7 +83,7 @@
 
         <asp:Panel ID="pnlEditGroupMember" runat="server" Visible="false">
             
-            <asp:Literal ID="lGroupName" runat="server"></asp:Literal>
+<%--            <asp:Literal ID="lGroupName" runat="server"></asp:Literal>--%>
             <asp:Literal ID="lGroupMemberEditPreHtml" runat="server" />
             
             <asp:ValidationSummary ID="vsEditGroupMember" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
@@ -95,7 +95,7 @@
                     <KCIOnline:LineAndFollowUpPersonPicker ID="ppGroupMemberPerson" runat="server"  Label="Person" Required="true"/>
                 </div>
                 <div class="col-md-6">
-                    <Rock:RockRadioButtonList ID="rblStatus" runat="server" Label="Member Status" RepeatDirection="Horizontal" />
+                    <Rock:RockRadioButtonList ID="rblStatus" Visible="False" runat="server" Label="Member Status" RepeatDirection="Horizontal" />
                 </div>
             </div>
 
