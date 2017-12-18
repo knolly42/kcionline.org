@@ -94,7 +94,7 @@ namespace org_kcionline.Groups
             int amLeaderOfGroupCount = 0;
             foreach ( var group in allCellGroups )
             {
-                bool isLeader = group.Members.Any( p => p.GroupRole.IsLeader && p.Person == CurrentPerson );
+                bool isLeader = group.Members.Any( gm => gm.GroupRole.IsLeader && gm.PersonId == CurrentPersonId );
                 if (isLeader)
                 {
                     amLeaderOfMembersCount += group.Members.Count;

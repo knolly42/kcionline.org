@@ -32,7 +32,7 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
         public static bool InAGroup(this Person person, RockContext rockContext )
         {
             var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
-            return new GroupMemberService( rockContext ).Queryable().Any( gm => gm.Group.GroupTypeId == cellGroupType.Id);
+            return new GroupMemberService( rockContext ).GetByPersonId(person.Id).Any( gm => gm.Group.GroupTypeId == cellGroupType.Id);
         }
 
 
@@ -93,7 +93,7 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
         {
             var groupMemberService = new GroupMemberService( rockContext );
             var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
-            IQueryable<GroupMember> currentPersonsCellGroups = null;
+            IQueryable<Group> currentPersonsCellGroups = null;
 
             var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
             if (cellGroupType == null)
@@ -102,17 +102,19 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
             }
             currentPersonsCellGroups = groupMemberService
                 .GetByPersonId( leader.Id )
-                .Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) ).Distinct();
+                .Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) )
+                .Select(gm => gm.Group)
+                .Distinct();
             return
-                groupMemberService.GetByGuids(currentPersonsCellGroups.Select(g => g.Guid).ToList())
-                                  .Select(gm => gm.Person);
+                groupMemberService.Queryable()
+                .Where(gm => currentPersonsCellGroups.Any(g => g.Id == gm.GroupId))
+                .Select(gm => gm.Person);
         }
 
         public static IQueryable<Group> GetGroupsLead(this Person leader, RockContext rockContext)
         {
             var groupMemberService = new GroupMemberService( rockContext );
             var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
-            IQueryable<GroupMember> currentPersonsCellGroups = null;
 
             var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
             if ( cellGroupType == null )

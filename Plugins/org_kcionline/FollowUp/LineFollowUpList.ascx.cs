@@ -114,11 +114,7 @@ namespace org_kcionline.FollowUp
         {
             BindGrid();
         }
-
-
-
-
-
+        
         protected void gList_OnRowSelected( object sender, RowEventArgs e )
         {
             NavigateToLinkedPage( "DetailPage", "ConnectionRequestId", e.RowKeyValues["Id"].ToString().AsInteger() );

@@ -10,13 +10,13 @@
             <div class="panel-body">
                 <div class="row" runat="server" ID="leaderControlRow">
                     <div class="col-md-4">
+                        <Rock:RockDropDownList runat="server" Label="List" ID="ddlChoices" OnSelectedIndexChanged="ddlChoices_OnSelectedIndexChanged" AutoPostBack="True"/>
+                    </div>
+                    <div class="col-md-4">
+                        <Rock:Toggle ID="tViewLineType" Visible="True" runat="server" Label="Showing" OnText="My People" OffText="My Line" Checked="true" OnCheckedChanged="tViewLineType_OnCheckedChanged"   />
+                    </div>
+                    <div class="col-md-4">
                         <KCIOnline:LinePersonPicker Label="Filter" runat="server" ID="ppFilter" OnSelectPerson="ppFilter_OnSelectPerson"/>
-                    </div>
-                    <div class="col-md-4">
-                        <Rock:RockDropDownList runat="server" ID="ddlChoices" OnSelectedIndexChanged="ddlChoices_OnSelectedIndexChanged"/>
-                    </div>
-                    <div class="col-md-4">
-                        <Rock:Toggle ID="tViewLineType" Visible="True" runat="server" Label="Showing" OnText="My Follow Ups" OffText="My Line's Follow Ups" Checked="true" OnCheckedChanged="tViewLineType_OnCheckedChanged"   />
                     </div>
                     <div class="col-md-12">
                         <asp:Literal ID="lContent" runat="server"></asp:Literal>

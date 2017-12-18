@@ -32,7 +32,7 @@ namespace org_kcionline.FollowUp
             {ViewOption.InGroup, "In a Group" },
             {ViewOption.NotInGroup, "Not in a Group" },
             {ViewOption.Ongoing, "Ongoing" },
-            {ViewOption.Ready, "Ready" }
+            {ViewOption.Ready, "Ready for Group" }
         };
 
         public bool PersonPickerIsLinePicker = false;
@@ -60,6 +60,7 @@ namespace org_kcionline.FollowUp
             {
                 SetupChoices();
                 Route();
+                SetppFilterLabel();
                 if (CurrentPerson.HasALine())
                 {
                     tViewLineType.Checked = false;
@@ -103,8 +104,15 @@ namespace org_kcionline.FollowUp
             {
                 return;
             }
-            var option = (ViewOption) Enum.Parse(typeof(ViewOption), Request.QueryString["view"]);
-            ddlChoices.SetValue(ViewOptionText[option]);
+            if (Request.QueryString["view"] != null)
+            {
+                ViewOption option;
+                bool success = Enum.TryParse( Request.QueryString["view"], out option );
+                if (success)
+                {
+                    ddlChoices.SetValue( ViewOptionText[option] );
+                }
+            }
         }
 
         private ViewOption GetOption()
@@ -146,11 +154,10 @@ namespace org_kcionline.FollowUp
                 case ViewOption.Ready:
                     break;
                 case ViewOption.InGroup:
-                    people = people.Where(f => f.InAGroup(rockContext));
+                    people = people.ToList().Where(f => f.InAGroup(rockContext)).AsQueryable();
                     break;
                 case ViewOption.NotInGroup:
-                    people = people.Where(
-                        f => f.ConnectionStatusValueId == org.kcionline.bricksandmortarstudio.Constants.DefinedValue.GET_CONNECTED && !f.InAGroup(rockContext) );
+                    people = people.ToList().Where( f => !f.InAGroup( rockContext ) ).AsQueryable();
                     break;
                 case ViewOption.Ongoing:
                     people = people.Where(
@@ -179,12 +186,11 @@ namespace org_kcionline.FollowUp
             {
                 if (option.IsGuaranteedToHaveConsolidator())
                 {
-                    followUpSummaries =
-                        followUpSummaries.Where(f => f.Consolidator.Id == ppFilter.SelectedValue);
+                    followUpSummaries = followUpSummaries.Where(f => f.Consolidator != null && f.Consolidator.Id == ppFilter.SelectedValue);
 
                     followUpSummaries = followUpSummaries
-                        .OrderByDescending( f => f.Person.ConnectionStatusValue.Value == "GetConnected" )
-                        .ThenBy( f => f.Consolidator.Id );
+                      .OrderByDescending( f => f.Person.ConnectionStatusValue.Value == "GetConnected" )
+                      .ThenBy( f => f.Consolidator.Id );
                 }
                 else
                 {
@@ -195,17 +201,30 @@ namespace org_kcionline.FollowUp
                     }
                     var person = new PersonService(rockContext).Get(ppFilter.SelectedValue.Value);
                     var groups = person.GetGroupsLead(rockContext);
-                    followUpSummaries = followUpSummaries.Where(f => groups.Select(g => g.Id).Contains(f.Group.Id));
-
+                    followUpSummaries = followUpSummaries
+                        .Where(f => f.Group != null && groups.Select(g => g.Id).Contains(f.Group.Id));
 
                     followUpSummaries = followUpSummaries
                         .OrderByDescending( f => f.Group.Id)
                         .ThenBy( f => f.Consolidator.Id );
+
+                    if (option == ViewOption.All)
+                    {
+                        followUpSummaries = followUpSummaries
+                            .OrderBy(p => p.Person.FirstName);
+                    }
+                    else
+                    {
+                        followUpSummaries = followUpSummaries
+                            .OrderByDescending( f => f.Group.Id )
+                            .ThenBy( f => f.Consolidator.Id );
+                    }
                 }
             }
 
             mergeFields["FollowUps"] = followUpSummaries.ToList();
             mergeFields["MyLine"] = isMyLine;
+            mergeFields["View"] = ViewOptionText[option];
 
             string template = GetAttributeValue("LavaTemplate");
 
@@ -218,6 +237,12 @@ namespace org_kcionline.FollowUp
             }
 
             lContent.Text = template.ResolveMergeFields(mergeFields);
+        }
+
+        private void SetppFilterLabel()
+        {
+            var option = GetOption();
+            ppFilter.Label = option.IsGuaranteedToHaveConsolidator() ? "Filter By Consolidator" : "Filter By Group Leader";
         }
 
         [DotLiquid.LiquidType("Person", "Consolidator")]
@@ -243,8 +268,8 @@ namespace org_kcionline.FollowUp
 
         protected void ddlChoices_OnSelectedIndexChanged(object sender, EventArgs e)
         {
-            var option = GetOption();
-            ppFilter.Label = option.IsGuaranteedToHaveConsolidator() ? "Filter By Consolidator" : "Filter By Group Leader";
+            SetppFilterLabel();
+            GetFollowUps();
         }
     }
 
