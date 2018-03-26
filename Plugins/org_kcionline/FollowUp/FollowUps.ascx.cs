@@ -110,7 +110,8 @@ namespace org_kcionline.FollowUp
                 bool success = Enum.TryParse( Request.QueryString["view"], out option );
                 if (success)
                 {
-                    ddlChoices.SetValue( ViewOptionText[option] );
+                    //ddlChoices.SetValue( ViewOptionText[option] ); ToInt32(option) fixes ?view=number being ignored 
+                    ddlChoices.SelectedIndex = Convert.ToInt32(option);
                 }
             }
         }
@@ -172,13 +173,13 @@ namespace org_kcionline.FollowUp
             {
 
                 followUpSummaries =
-                    people.ToList().Select( f => new FollowUpSummary() { Person = f, Consolidator = CurrentPerson} )
+                    people.ToList().Select( f => new FollowUpSummary() { Person = f, Consolidator = CurrentPerson, Group = CurrentPerson.GetPersonsPrimaryKciGroup(rockContext)} )
                              .AsQueryable();
             }
             else
             {
                 followUpSummaries =
-                    people.ToList().Select( f => new FollowUpSummary() { Person = f, Consolidator = f.GetConsolidator() } )
+                    people.ToList().Select( f => new FollowUpSummary() { Person = f, Consolidator = f.GetConsolidator(), Group = f.GetPersonsPrimaryKciGroup(rockContext)} )
                              .AsQueryable();
             }
 
@@ -192,39 +193,42 @@ namespace org_kcionline.FollowUp
                       .OrderByDescending( f => f.Person.ConnectionStatusValue.Value == "GetConnected" )
                       .ThenBy( f => f.Consolidator.Id );
                 }
-                else
-                {
+           // Will do the group leader filtering in lava instead for now
+           //     else
+           //     {
                     // Defer this work in order to avoid hammering queries unless we need to
-                    foreach (var followUpSummary in followUpSummaries)
-                    {
-                        followUpSummary.Group = followUpSummary.Person.GetPersonsPrimaryKciGroup(rockContext);
-                    }
-                    var person = new PersonService(rockContext).Get(ppFilter.SelectedValue.Value);
-                    var groups = person.GetGroupsLead(rockContext);
-                    followUpSummaries = followUpSummaries
-                        .Where(f => f.Group != null && groups.Select(g => g.Id).Contains(f.Group.Id));
+           //         foreach (var followUpSummary in followUpSummaries)
+           //         {
+           //             followUpSummary.Group = followUpSummary.Person.GetPersonsPrimaryKciGroup(rockContext);
+           //         }
+           //         var person = new PersonService(rockContext).Get(ppFilter.SelectedValue.Value);
+           //         var groups = person.GetGroupsLead(rockContext);
+           //         followUpSummaries = followUpSummaries
+           //             .Where(f => f.Group != null && groups.Select(g => g.Id).Contains(f.Group.Id));
 
-                    followUpSummaries = followUpSummaries
-                        .OrderByDescending( f => f.Group.Id)
-                        .ThenBy( f => f.Consolidator.Id );
+           //         followUpSummaries = followUpSummaries
+           //             .OrderByDescending( f => f.Group.Id)
+           //             .ThenBy( f => f.Consolidator.Id );
 
-                    if (option == ViewOption.All)
-                    {
-                        followUpSummaries = followUpSummaries
-                            .OrderBy(p => p.Person.FirstName);
-                    }
-                    else
-                    {
-                        followUpSummaries = followUpSummaries
-                            .OrderByDescending( f => f.Group.Id )
-                            .ThenBy( f => f.Consolidator.Id );
-                    }
-                }
+           //         if (option == ViewOption.All)
+           //         {
+           //             followUpSummaries = followUpSummaries
+           //                 .OrderBy(p => p.Person.FirstName);
+           //         }
+           //         else
+           //         {
+           //             followUpSummaries = followUpSummaries
+           //                 .OrderByDescending( f => f.Group.Id )
+           //                 .ThenBy( f => f.Consolidator.Id );
+           //         }
+           //     }
             }
 
             mergeFields["FollowUps"] = followUpSummaries.ToList();
             mergeFields["MyLine"] = isMyLine;
             mergeFields["View"] = ViewOptionText[option];
+           // add the leader filter for lava template
+            mergeFields["LeaderFilter"] = ppFilter.SelectedValue;
 
             string template = GetAttributeValue("LavaTemplate");
 
@@ -244,8 +248,8 @@ namespace org_kcionline.FollowUp
             var option = GetOption();
             ppFilter.Label = option.IsGuaranteedToHaveConsolidator() ? "Filter By Consolidator" : "Filter By Group Leader";
         }
-
-        [DotLiquid.LiquidType("Person", "Consolidator")]
+// extend to include the group if applicable
+        [DotLiquid.LiquidType("Person", "Consolidator", "Group")]
         public class FollowUpSummary
         {
             public Person Person { get; set; }
