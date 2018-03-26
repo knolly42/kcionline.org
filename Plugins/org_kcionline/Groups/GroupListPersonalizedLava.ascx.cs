@@ -77,7 +77,8 @@ namespace org_kcionline.Groups
             var cellGroupsInLine = LineQuery.GetCellGroupsInLine( CurrentPerson, rockContext, false ).ToList();
             int responsibilityCount = cellGroupsInLine.Count;
             var cellGroupdTypeGuid = org.kcionline.bricksandmortarstudio.SystemGuid.GroupType.CELL_GROUP.AsGuid();
-
+            var coordinatorGroupRoleGuid = org.kcionline.bricksandmortarstudio.SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid
+            
             var cellMemberGroups =
                 new GroupMemberService( rockContext).Queryable()
                                                    .Where(
@@ -94,20 +95,29 @@ namespace org_kcionline.Groups
             int amLeaderOfGroupCount = 0;
             foreach ( var group in allCellGroups )
             {
-                bool isLeader = group.Members.Any( gm => gm.GroupRole.IsLeader && gm.PersonId == CurrentPersonId );
+            // exclude inactive group members
+            var grp = group.Members.Where(gm => gm.GroupMemberStatus == GroupMemberStatus.Active).Select( gm => gm.Group ).ToList();
+			// additional flag for lava template - IsCoordinator
+            bool isCoordinator = group.Members.Any( gm => gm.GroupRole.Guid == coordinatorGroupRoleGuid && gm.PersonId == CurrentPersonId );            
+            
+            bool isLeader = group.Members.Any( gm => gm.GroupRole.IsLeader && gm.PersonId == CurrentPersonId );
                 if (isLeader)
                 {
-                    amLeaderOfMembersCount += group.Members.Count;
+                    //amLeaderOfMembersCount += group.Members.Count; // count should exclude inactives
+                    amLeaderOfMembersCount += grp.Count;
                     amLeaderOfGroupCount++;
                 }
                 bool isMember = group.Members.Any( p => p.Person == CurrentPerson );
-                totalCount += group.Members.Count;
+                //totalCount += group.Members.Count; // count should exclude inactives
+                totalCount += grp.Count;
                 groups.Add( new GroupInvolvementSummary
                 {
                     Group = group,
                     IsLeader = isLeader,
                     MemberCount = group.Members.Count,
                     IsMember = isMember
+                    //include isCoordinator
+                    IsCoordinator = isCoordinator
                 } );
             }
 
@@ -134,7 +144,7 @@ namespace org_kcionline.Groups
             lContent.Text = template.ResolveMergeFields( mergeFields );
         }
 
-        [DotLiquid.LiquidType( "Group", "IsLeader", "MemberCount", "IsMember" )]
+        [DotLiquid.LiquidType( "Group", "IsLeader", "MemberCount", "IsMember", "IsCoordinator" )]
         public class GroupInvolvementSummary
         {
             public Group Group { get; set; }
@@ -142,6 +152,7 @@ namespace org_kcionline.Groups
             public int MemberCount { get; set; }
 
             public bool IsMember { get; set; }
+            public bool IsCoordinator { get; set; }
         }
 
         #endregion
