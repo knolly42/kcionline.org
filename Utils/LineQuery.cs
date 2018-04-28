@@ -53,10 +53,10 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 return new List<Person>().AsQueryable();
             }
 
-            if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
-            {
-                return personService.Queryable();
-            }
+           // if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
+           // {
+           //     return personService.Queryable();
+           // }
             else
             {
                 var cellGroupsIdsInLine = GetCellGroupIdsInLine( currentPerson, rockContext );
@@ -84,10 +84,10 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 return new List<Person>().AsQueryable();
             }
 
-            if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
-            {
-                return personService.Queryable();
-            }
+           // if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
+           // {
+           //     return personService.Queryable();
+           // }
             var cellGroupsIdsInLine = GetCellGroupIdsInLine( currentPerson, rockContext );
             var recordStatusIsActiveGuid = Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid();
             var groupMemberService = new GroupMemberService( rockContext );
@@ -140,10 +140,10 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 return new List<Person>().AsQueryable();
             }
 
-            if (showAllIfStaff && CheckIsStaff(currentPerson, rockContext))
-            {
-                return personService.Queryable();
-            }
+           // if (showAllIfStaff && CheckIsStaff(currentPerson, rockContext))
+           // {
+           //     return personService.Queryable();
+           // }
             var cellGroupsIdsInLine = GetCellGroupIdsInLine(currentPerson, rockContext);
             var recordStatusIsActiveGuid = Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid();
             var groupMemberService = new GroupMemberService(rockContext);
@@ -221,10 +221,10 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 return new List<Group>().AsQueryable();
             }
 
-            if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
-            {
-                return new GroupService( rockContext ).Queryable();
-            }
+            //if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
+            //{
+            //    return new GroupService( rockContext ).Queryable();
+           // }
 
             return new GroupService( rockContext ).GetByIds( GetCellGroupIdsInLine( currentPerson, rockContext ).ToList() );
         }
