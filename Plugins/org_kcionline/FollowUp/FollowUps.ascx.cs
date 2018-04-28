@@ -209,20 +209,21 @@ namespace org_kcionline.FollowUp
            //         followUpSummaries = followUpSummaries
            //             .OrderByDescending( f => f.Group.Id)
            //             .ThenBy( f => f.Consolidator.Id );
-
+           //      }
+           }
            //         if (option == ViewOption.All)
-           //         {
-           //             followUpSummaries = followUpSummaries
-           //                 .OrderBy(p => p.Person.FirstName);
-           //         }
+           
+           // Sort all by LastName
+                    {
+                        followUpSummaries = followUpSummaries
+                            .OrderBy(p => p.Person.LastName);
+                    }
            //         else
            //         {
            //             followUpSummaries = followUpSummaries
            //                 .OrderByDescending( f => f.Group.Id )
            //                 .ThenBy( f => f.Consolidator.Id );
            //         }
-           //     }
-            }
 
             mergeFields["FollowUps"] = followUpSummaries.ToList();
             mergeFields["MyLine"] = isMyLine;

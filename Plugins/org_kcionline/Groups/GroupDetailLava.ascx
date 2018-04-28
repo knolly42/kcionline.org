@@ -92,7 +92,8 @@
 
             <div class="row">
                 <div class="col-md-6">
-                    <KCIOnline:LineAndFollowUpPersonPicker ID="ppGroupMemberPerson" runat="server"  Label="Person" Required="true"/>
+<%--                    <KCIOnline:LineAndFollowUpPersonPicker ID="ppGroupMemberPerson" runat="server"  Label="Person" Required="true"/>--%>
+                    <KCIOnline:FollowUpPersonPicker ID="ppGroupMemberPerson" runat="server"  Label="Person" Required="true"/>
                 </div>
                 <div class="col-md-6">
                     <Rock:RockRadioButtonList ID="rblStatus" Visible="False" runat="server" Label="Member Status" RepeatDirection="Horizontal" />
