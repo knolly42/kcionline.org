@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Quartz.Util;
@@ -21,7 +21,9 @@ namespace org.kcionline.bricksandmortarstudio.Utils
 
             var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
             var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
-            return new GroupMemberService( rockContext ).Queryable().Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) ).Select( gm => gm.Person );
+            //return new GroupMemberService( rockContext ).Queryable().Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) ).Select( gm => gm.Person ).Distinct();
+            var linecoordinatorsandleaders = new GroupMemberService(rockContext).Queryable().Where(gm => gm.Group.GroupTypeId == cellGroupType.Id && (gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid)).Select(gm => gm.Person);
+            return linecoordinatorsandleaders.Distinct();
         }
 
         public static IQueryable<GroupMember> GetGroupMemberInLine( Person currentPerson, RockContext rockContext, bool showAllIfStaff )
@@ -31,13 +33,16 @@ namespace org.kcionline.bricksandmortarstudio.Utils
                 return new List<GroupMember>().AsQueryable();
             }
 
-            if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
-            {
-                return new GroupMemberService( rockContext ).Queryable( "Group, Group.GroupType" ).Where( a => a.Group.GroupType.Guid == SystemGuid.GroupType.CELL_GROUP.AsGuid() );
-            }
+           // if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
+           // {
+           //     return new GroupMemberService( rockContext ).Queryable( "Group, Group.GroupType" ).Where( a => a.Group.GroupType.Guid == SystemGuid.GroupType.CELL_GROUP.AsGuid() );
+           // }
             else
             {
-                var cellGroupsIdsInLine = GetCellGroupIdsInLine( currentPerson, rockContext );
+                //     var cellGroupsIdsInLine = GetCellGroupIdsInLine( currentPerson, rockContext );
+
+                // Optionally get groups for Leader only or Leader ANd Coordinator
+                var cellGroupsIdsInLine = showAllIfStaff ? GetCellGroupIdsInLine(currentPerson, rockContext) : GetLeaderOnlyCellGroupIdsInLine(currentPerson, rockContext);
 
                 var groupMemberInLine =
                     new GroupMemberService( rockContext ).Queryable()
@@ -135,16 +140,15 @@ namespace org.kcionline.bricksandmortarstudio.Utils
         /// <returns></returns>
         public static IQueryable<Person> GetLineMembersAndFollowUps(PersonService personService, Person currentPerson, RockContext rockContext, bool showAllIfStaff)
         {
+
             if (currentPerson == null)
             {
                 return new List<Person>().AsQueryable();
             }
-
-           // if (showAllIfStaff && CheckIsStaff(currentPerson, rockContext))
-           // {
-           //     return personService.Queryable();
-           // }
-            var cellGroupsIdsInLine = GetCellGroupIdsInLine(currentPerson, rockContext);
+           
+            // Optionally get groups for Leader only or Leader ANd Coordinator
+            var cellGroupsIdsInLine = showAllIfStaff ? GetCellGroupIdsInLine(currentPerson, rockContext) : GetLeaderOnlyCellGroupIdsInLine(currentPerson, rockContext);
+            
             var recordStatusIsActiveGuid = Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid();
             var groupMemberService = new GroupMemberService(rockContext);
 
@@ -224,10 +228,65 @@ namespace org.kcionline.bricksandmortarstudio.Utils
             //if ( showAllIfStaff && CheckIsStaff( currentPerson, rockContext ) )
             //{
             //    return new GroupService( rockContext ).Queryable();
-           // }
+            // }
+            // Optionally get groups for Leader only or Leader ANd Coordinator
+            
+            if (showAllIfStaff)
+            {
+                return new GroupService( rockContext ).GetByIds( GetCellGroupIdsInLine( currentPerson, rockContext ).ToList() );
+            }
+            else
+            {
+                return new GroupService(rockContext).GetByIds(GetLeaderOnlyCellGroupIdsInLine(currentPerson, rockContext).ToList());
+            }
+            //return new GroupService( rockContext ).GetByIds( GetCellGroupIdsInLine( currentPerson, rockContext ).ToList() );
 
-            return new GroupService( rockContext ).GetByIds( GetCellGroupIdsInLine( currentPerson, rockContext ).ToList() );
         }
+
+        /// <summary>
+        /// Gets the cell groups of only the leader, excluding the Coordinator
+        /// </summary>
+        /// <param name="currentPerson"></param>
+        /// <param name="rockContext"></param>
+        /// <returns></returns>
+        public static IEnumerable<int> GetLeaderOnlyCellGroupIdsInLine(Person currentPerson, RockContext rockContext)
+        {
+            if (currentPerson == null)
+            {
+                return new List<int>();
+            }
+
+            var groupMemberService = new GroupMemberService(rockContext);
+            var cellGroupType = GroupTypeCache.Read(SystemGuid.GroupType.CELL_GROUP.AsGuid());
+            IQueryable<GroupMember> currentPersonsCellGroups = null;
+
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+            if (cellGroupType != null)
+            {
+                currentPersonsCellGroups = groupMemberService
+                                      .GetByPersonId(currentPerson.Id)
+                                                      .Where(gm => gm.Group.GroupTypeId == cellGroupType.Id && (gm.GroupRole.IsLeader && gm.GroupRole.Guid != consolidatorCoordinatorGuid)).Distinct();
+            }
+
+            if (currentPersonsCellGroups == null || !currentPersonsCellGroups.Any())
+            {
+                return new List<int>();
+            }
+
+            var descendentGroups = new List<int>();
+
+            var groupService = new GroupService(rockContext);
+            foreach (var groupMember in currentPersonsCellGroups)
+            {
+                descendentGroups.Add(groupMember.GroupId);
+                descendentGroups.AddRange(groupService.GetAllDescendents(groupMember.GroupId)
+                                                      .Where(g => g.GroupTypeId == cellGroupType.Id)
+                                                      .Select(g => g.Id));
+            }
+
+            return descendentGroups.Distinct();
+        }
+
 
         public static IEnumerable<int> GetCellGroupIdsInLine( Person currentPerson, RockContext rockContext )
         {
