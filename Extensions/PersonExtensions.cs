@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Rock;
 using Rock.Data;
@@ -29,6 +29,35 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
             return new GroupMemberService( rockContext ).Queryable().Any( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) && gm.PersonId == person.Id );
         }
 
+        public static bool IsCoordinator(this Person person)
+        {
+            return person.IsCoordinator(new RockContext());
+        }
+
+        /// <summary>
+        /// Check if the person is a line coordinator of a KCI small group
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="rockContext"></param>
+        /// <returns></returns>
+        public static bool IsCoordinator(this Person person, RockContext rockContext)
+        {
+            var cellGroupType = Rock.Web.Cache.GroupTypeCache.Read(SystemGuid.GroupType.CELL_GROUP.AsGuid());
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+            return new GroupMemberService(rockContext).Queryable().Any(gm => gm.Group.GroupTypeId == cellGroupType.Id && (gm.GroupRole.Guid == consolidatorCoordinatorGuid) && gm.PersonId == person.Id);
+        }
+
+        public static bool InAGroup(this Person person)
+        {
+            return person.InAGroup(new RockContext());
+        }
+
+        /// <summary>
+        /// Check if the person is in a KCI small group
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="rockContext"></param>
+        /// <returns></returns>
         public static bool InAGroup(this Person person, RockContext rockContext )
         {
             var cellGroupType = GroupTypeCache.Read( SystemGuid.GroupType.CELL_GROUP.AsGuid() );
@@ -111,6 +140,35 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
                 .Select(gm => gm.Person);
         }
 
+        /// <summary>
+        /// Gets the people that are group members in a group where the person is a leader
+        /// </summary>
+        public static IQueryable<Person> GetPeopleLeadInKCIGroupsLeaderOnly(this Person leader, RockContext rockContext)
+        {
+            var groupMemberService = new GroupMemberService(rockContext);
+            var cellGroupType = GroupTypeCache.Read(SystemGuid.GroupType.CELL_GROUP.AsGuid());
+            IQueryable<Group> currentPersonsCellGroups = null;
+
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+            if (cellGroupType == null)
+            {
+                throw new Exception("Cannot locate KCI Group type");
+            }
+
+            currentPersonsCellGroups = leader.GetGroupsLeadLeaderOnly(rockContext);
+                
+                //groupMemberService
+                //.GetByPersonId(leader.Id)
+                //.Where(gm => gm.Group.GroupTypeId == cellGroupType.Id && (gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid))
+                //.Select(gm => gm.Group)
+                //.Distinct();
+            return
+                groupMemberService.Queryable()
+                .Where(gm => currentPersonsCellGroups.Any(g => g.Id == gm.GroupId))
+                .Select(gm => gm.Person);
+        }
+
+
         public static IQueryable<Group> GetGroupsLead(this Person leader, RockContext rockContext)
         {
             var groupMemberService = new GroupMemberService( rockContext );
@@ -126,6 +184,21 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
                 .Where( gm => gm.Group.GroupTypeId == cellGroupType.Id && ( gm.GroupRole.IsLeader || gm.GroupRole.Guid == consolidatorCoordinatorGuid ) ).Select(gm => gm.Group).Distinct();
         }
 
+        public static IQueryable<Group> GetGroupsLeadLeaderOnly(this Person leader, RockContext rockContext)
+        {
+            var groupMemberService = new GroupMemberService(rockContext);
+            var cellGroupType = GroupTypeCache.Read(SystemGuid.GroupType.CELL_GROUP.AsGuid());
+
+            var consolidatorCoordinatorGuid = SystemGuid.GroupTypeRole.CONSOLIDATION_COORDINATOR.AsGuid();
+            if (cellGroupType == null)
+            {
+                throw new Exception("Cannot locate KCI Group type");
+            }
+            return groupMemberService
+                .GetByPersonId(leader.Id)
+                .Where(gm => gm.Group.GroupTypeId == cellGroupType.Id && (gm.GroupRole.IsLeader && gm.GroupRole.Guid != consolidatorCoordinatorGuid)).Select(gm => gm.Group).Distinct();
+        }
+
         /// <summary>
         ///  Get a person's group members they lead and their followups
         /// </summary>
@@ -135,6 +208,27 @@ namespace org.kcionline.bricksandmortarstudio.Extensions
         public static IQueryable<Person> GetPersonsLine(this Person leader, RockContext rockContext)
         {
             return leader.GetPeopleLeadInKCIGroups(rockContext).Union(leader.GetFollowUps(rockContext));
+        }
+        /// <summary>
+        ///  Get a person's group members they lead and their followups
+        /// </summary>
+        /// <param name="leader"></param>
+        /// <param name="rockContext"></param>
+        /// <param name="isMyLeaderLine"></param>
+        /// <returns></returns>
+        public static IQueryable<Person> GetPersonsLineOptionalCoordinator(this Person leader, RockContext rockContext, bool isMyLeaderLine)
+        {
+            
+            if (isMyLeaderLine == true && leader.IsCoordinator())
+            {
+                return leader.GetPeopleLeadInKCIGroups(rockContext).Union(leader.GetFollowUps(rockContext));
+            }
+            else
+            {
+                return leader.GetPeopleLeadInKCIGroupsLeaderOnly(rockContext).Union(leader.GetFollowUps(rockContext));
+
+            }
+
         }
 
         public static Group GetPersonsPrimaryKciGroup(this Person person, RockContext rockContext)
